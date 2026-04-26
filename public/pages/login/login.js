@@ -182,13 +182,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 const result = await response.json();
 
                 if (response.ok) {
-                    // Login bem-sucedido - salva dados e redireciona
+                    // Login bem-sucedido - salva TODOS os dados de identificação
                     if (result.token) {
                         localStorage.setItem('authToken', result.token);
                         localStorage.setItem('userRole', 'cliente');
                         localStorage.setItem('clientCode', serial);
-                        localStorage.setItem('userName', result.userName || serial);
+                        localStorage.setItem('userName', result.userName || result.nome || serial);
                     }
+                    // Armazena dados adicionais do consumidor se retornados
+                    if (result.idConsumidor) localStorage.setItem('idConsumidor', result.idConsumidor);
+                    if (result.nome) localStorage.setItem('consumidorNome', result.nome);
+                    if (result.idVenda) localStorage.setItem('idVenda', result.idVenda);
 
                     // Redireciona direto para o menu do cliente
                     setTimeout(() => {

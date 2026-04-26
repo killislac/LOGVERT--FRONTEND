@@ -154,6 +154,11 @@ app.get('/solicitacoes', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/pages/devolucoes/devolucoes.html'));
 });
 
+// Rota alternativa para Trocas e Devoluções (usada no sidebar do lojista)
+app.get('/devolucoes', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public/pages/devolucoes/devolucoes.html'));
+});
+
 // Rota para Nova Solicitação (Consumidor)
 app.get('/solicitacoes/nova', (req, res) => {
   res.sendFile(path.join(__dirname, 'public/pages/solicitacao/solicitacao.html'));

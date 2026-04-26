@@ -176,6 +176,55 @@ body.sidebar-collapsed .main-container { margin-left: 90px; }
 }
 /* --- FIM DA NOVA REGRA --- */
 
+/* Status Badges Completos */
+.status-badge.status-pending { background-color: #f39c12; }
+.status-badge.status-rejected { background-color: #e53935; }
+.status-badge.status-cancelled { background-color: #78909c; }
+
+/* Feedback Message */
+.feedback-message {
+    padding: 12px 20px;
+    border-radius: 8px;
+    margin-bottom: 1.5rem;
+    font-weight: 500;
+    text-align: center;
+}
+.feedback-message.success {
+    background-color: rgba(56, 142, 60, 0.15);
+    color: var(--primary-green);
+    border: 1px solid var(--primary-green);
+}
+.feedback-message.error {
+    background-color: rgba(229, 57, 53, 0.15);
+    color: #e53935;
+    border: 1px solid #e53935;
+}
+
+/* Edit Form Group */
+.edit-form-group {
+    margin-bottom: 14px;
+}
+.edit-form-group label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 6px;
+    font-weight: 500;
+    color: var(--text-light);
+    font-size: 0.9rem;
+}
+
+/* Botão Editar hover */
+.btn-edit-sol:hover {
+    background: var(--neon-green-accent) !important;
+    color: var(--background-dark) !important;
+}
+
+/* Botão Cancelar hover */
+.btn.btn-danger:hover {
+    background: #c62828 !important;
+}
+
 
 @media (max-width: 992px) {
     .sidebar { transform: translateX(-100%); }

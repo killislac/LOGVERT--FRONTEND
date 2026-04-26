@@ -50,7 +50,7 @@
                     <h1 class="header-title">Nova Solicitação de Troca/Devolução</h1>
 
                     <div class="header-user-actions">
-                        <span>Bem-vindo, Cliente</span>
+                        <span id="welcome-user">Bem-vindo, Cliente</span>
                         <div class="header-actions">
                             <div class="header-action-item">
                                 <button class="header-action-btn" id="accountBtn" title="Minha Conta">
@@ -96,16 +96,51 @@
 
                 <div class="form-card" id="form-card">
                     <h2>Preencha os dados para prosseguir:</h2>
-                    <p class="form-description">Todas as informações são essenciais para agilizar o processo.</p>
+                    <p class="form-description">Selecione o item da sua compra e preencha os dados da solicitação.</p>
 
-                    <form id="form-solicitacao">
+                    <!-- Loading de itens -->
+                    <div id="loading-itens" style="text-align:center; padding:1.5rem; color: var(--text-muted);">
+                        <i class="fas fa-spinner fa-spin fa-lg"></i>
+                        <p style="margin-top:8px;">Carregando seus itens de compra...</p>
+                    </div>
 
+                    <!-- Mensagem sem itens -->
+                    <div id="no-itens-message" style="display:none; text-align:center; padding:1.5rem; color: var(--text-muted);">
+                        <i class="fas fa-inbox fa-2x" style="margin-bottom:10px; color: var(--neon-green-accent);"></i>
+                        <p>Nenhum item de compra encontrado para solicitar troca/devolução.</p>
+                    </div>
+
+                    <form id="form-solicitacao" style="display:none;">
+
+                        <!-- Dropdown do Item -->
                         <div class="form-group">
                             <label for="idItem">
-                                <i class="fa-solid fa-barcode"></i> ID do Item:
+                                <i class="fa-solid fa-box-open"></i> Item da Compra:
                             </label>
-                            <input type="number" id="idItem" name="idItem" required min="1"
-                                placeholder="Informe o ID do item da sua compra">
+                            <select id="idItem" name="idItem" required>
+                                <option value="">Selecione um item...</option>
+                                <!-- Preenchido dinamicamente -->
+                            </select>
+                        </div>
+
+                        <!-- Info do item selecionado -->
+                        <div id="item-info" class="item-info-card" style="display:none;">
+                            <div class="item-info-row">
+                                <span class="item-info-label">Produto:</span>
+                                <span id="info-produto" class="item-info-value"></span>
+                            </div>
+                            <div class="item-info-row">
+                                <span class="item-info-label">Venda:</span>
+                                <span id="info-venda" class="item-info-value"></span>
+                            </div>
+                            <div class="item-info-row">
+                                <span class="item-info-label">Qtd. Disponível:</span>
+                                <span id="info-quantidade" class="item-info-value"></span>
+                            </div>
+                            <div class="item-info-row">
+                                <span class="item-info-label">Preço Vendido:</span>
+                                <span id="info-preco" class="item-info-value"></span>
+                            </div>
                         </div>
 
                         <div class="form-group">

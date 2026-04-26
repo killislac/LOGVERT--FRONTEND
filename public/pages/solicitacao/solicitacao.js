@@ -1,151 +1,215 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // =============================================
-    // CONFIGURAÇÃO
+    // CONFIGURAÇÃO — Rota base sempre /logvert
     // =============================================
-    const AUTH_API_URL = 'http://localhost:8080/logvert';
+    const API = 'http://localhost:8080/logvert';
+    const getToken = () => localStorage.getItem('authToken');
+
+    const jsonHeaders = () => ({
+        'Accept': 'application/json',
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+    });
+
+    const multipartHeaders = () => ({
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+    });
+
+    // =============================================
+    // VERIFICAÇÃO DE AUTENTICAÇÃO
+    // =============================================
+    if (!getToken()) {
+        window.location.href = '/pages/login/login.html';
+        return;
+    }
+
+    // Welcome dinâmico
+    const userName = localStorage.getItem('userName') || localStorage.getItem('consumidorNome') || 'Cliente';
+    const welcomeEl = document.getElementById('welcome-user');
+    if (welcomeEl) welcomeEl.textContent = `Bem-vindo, ${userName}`;
 
     // =============================================
     // ELEMENTOS DOM
     // =============================================
     const form = document.getElementById('form-solicitacao');
     const formCard = document.getElementById('form-card');
-    const successMessage = document.getElementById('successMessage');
-    const errorMessage = document.getElementById('errorMessage');
+    const successMsg = document.getElementById('successMessage');
+    const errorMsg = document.getElementById('errorMessage');
     const errorText = document.getElementById('errorText');
     const submitBtn = document.getElementById('btn-submit');
+    const loadingItens = document.getElementById('loading-itens');
+    const noItensMsg = document.getElementById('no-itens-message');
+    const itemSelect = document.getElementById('idItem');
+    const itemInfoCard = document.getElementById('item-info');
 
-    // =============================================
-    // FUNÇÕES AUXILIARES
-    // =============================================
-    const getToken = () => localStorage.getItem('authToken');
-
-    const showError = (message) => {
-        errorText.textContent = message;
-        errorMessage.style.display = 'flex';
-        errorMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    };
-
-    const showSuccess = () => {
-        formCard.style.display = 'none';
-        successMessage.style.display = 'flex';
-        successMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    const showError = (msg) => {
+        if (errorText) errorText.textContent = msg;
+        if (errorMsg) { errorMsg.style.display = 'flex'; errorMsg.scrollIntoView({ behavior: 'smooth' }); }
     };
 
     // =============================================
-    // CRIAR SOLICITAÇÃO
-    // POST /logvert/solicitacoes/criar
-    // multipart/form-data:
-    //   Parte 1: solicitacao (application/json) → { idItem, quantidade, tipo, motivo }
-    //   Parte 2: anexos (image/*, video/*) → arquivos
+    // CARREGAR ITENS — GET /logvert/vendas/me (consumidor)
+    // Fallback: GET /logvert/vendas (backend filtra pelo token)
+    // =============================================
+    let itensCache = [];
+
+    async function carregarItens() {
+        if (!itemSelect) return;
+
+        try {
+            // Tenta endpoint do consumidor primeiro
+            let resp = await fetch(`${API}/vendas/me`, { headers: jsonHeaders() });
+
+            // Fallback para listagem geral (backend filtra pelo token do consumidor)
+            if (!resp.ok && resp.status !== 401) {
+                resp = await fetch(`${API}/vendas?page=0&size=100&sort=dataCriacao,desc`, { headers: jsonHeaders() });
+            }
+
+            if (resp.status === 401) {
+                showError('Sessão expirada. Faça login novamente.');
+                setTimeout(() => { window.location.href = '/pages/login/login.html'; }, 2000);
+                return;
+            }
+            if (!resp.ok) throw new Error(`Erro ${resp.status}`);
+
+            const data = await resp.json();
+
+            // Normaliza — pode ser array, paginado ou objeto único
+            let vendas = [];
+            if (Array.isArray(data)) vendas = data;
+            else if (data.content) vendas = data.content;
+            else if (data.idVenda || data.id) vendas = [data];
+
+            // Extrai itens de todas as vendas
+            itensCache = [];
+            vendas.forEach(v => {
+                (v.itens || []).forEach(item => {
+                    itensCache.push({
+                        idItem: item.id || item.idItem,
+                        idVenda: v.idVenda || v.id,
+                        serial: v.serial || `Venda #${v.idVenda || v.id}`,
+                        produto: item.produto?.descricao || item.descricao || `Produto #${item.produto?.id || item.idProduto || '?'}`,
+                        quantidade: item.quantidade || 1,
+                        precoVendido: item.precoVendido || 0
+                    });
+                });
+            });
+
+            if (loadingItens) loadingItens.style.display = 'none';
+
+            if (itensCache.length === 0) {
+                if (noItensMsg) noItensMsg.style.display = 'block';
+                return;
+            }
+
+            // Popula dropdown
+            itemSelect.innerHTML = '<option value="">Selecione um item...</option>';
+            itensCache.forEach(it => {
+                const opt = document.createElement('option');
+                opt.value = it.idItem;
+                opt.textContent = `${it.produto} — ${it.serial} (Qtd: ${it.quantidade})`;
+                itemSelect.appendChild(opt);
+            });
+
+            if (form) form.style.display = 'block';
+
+        } catch (err) {
+            console.error('Erro ao carregar itens:', err);
+            if (loadingItens) loadingItens.innerHTML = '<i class="fas fa-exclamation-triangle fa-lg" style="color:#e53935;"></i><p>Erro ao carregar itens.</p>';
+        }
+    }
+
+    // Info do item selecionado
+    if (itemSelect) {
+        itemSelect.addEventListener('change', () => {
+            const id = itemSelect.value;
+            if (!id) { if (itemInfoCard) itemInfoCard.style.display = 'none'; return; }
+
+            const item = itensCache.find(i => String(i.idItem) === id);
+            if (item && itemInfoCard) {
+                document.getElementById('info-produto').textContent = item.produto;
+                document.getElementById('info-venda').textContent = item.serial;
+                document.getElementById('info-quantidade').textContent = item.quantidade;
+                document.getElementById('info-preco').textContent = `R$ ${parseFloat(item.precoVendido).toFixed(2)}`;
+                itemInfoCard.style.display = 'block';
+            }
+        });
+    }
+
+    // =============================================
+    // CRIAR SOLICITAÇÃO — POST /logvert/solicitacoes/criar
+    // multipart/form-data: solicitacao (JSON) + anexos (files)
     // =============================================
     if (form) {
-        form.addEventListener('submit', async (event) => {
-            event.preventDefault();
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (errorMsg) errorMsg.style.display = 'none';
 
-            // Oculta mensagens anteriores
-            errorMessage.style.display = 'none';
-            successMessage.style.display = 'none';
-
-            // Coleta os valores dos campos
-            const idItem = parseInt(document.getElementById('idItem').value);
+            const idItem = parseInt(itemSelect.value);
             const quantidade = parseFloat(document.getElementById('quantidade').value);
             const tipo = document.getElementById('tipo-solicitacao').value;
-            const motivoSelect = document.getElementById('motivo').value;
+            const motivoVal = document.getElementById('motivo').value;
             const detalhes = document.getElementById('detalhes').value;
             const anexosInput = document.getElementById('anexos');
 
-            // Determina o motivo final
-            const motivo = motivoSelect === 'Outro' ? detalhes : motivoSelect;
+            const motivo = motivoVal === 'Outro' ? detalhes : motivoVal;
 
-            // Validação básica
-            if (!idItem || idItem < 1) {
-                showError('✗ Informe o ID do item.');
-                return;
-            }
-            if (!quantidade || quantidade < 1) {
-                showError('✗ Informe a quantidade.');
-                return;
-            }
-            if (!tipo) {
-                showError('✗ Selecione o tipo de solicitação.');
-                return;
-            }
-            if (!motivo) {
-                showError('✗ Selecione ou descreva o motivo.');
-                return;
-            }
+            // Validações
+            if (!idItem || idItem < 1) { showError('Selecione um item da sua compra.'); return; }
+            if (!quantidade || quantidade < 1) { showError('Informe a quantidade.'); return; }
+            if (!tipo) { showError('Selecione o tipo de solicitação.'); return; }
+            if (!motivo) { showError('Selecione ou descreva o motivo.'); return; }
 
-            // Monta o FormData (multipart/form-data)
-            const formData = new FormData();
-
-            // Parte 1: solicitacao (JSON)
+            // Monta FormData
+            const fd = new FormData();
             const solicitacao = { idItem, quantidade, tipo, motivo };
-            formData.append('solicitacao', new Blob([JSON.stringify(solicitacao)], { type: 'application/json' }));
+            fd.append('solicitacao', new Blob([JSON.stringify(solicitacao)], { type: 'application/json' }));
 
-            // Parte 2: anexos (arquivos)
             if (anexosInput && anexosInput.files.length > 0) {
                 for (let i = 0; i < anexosInput.files.length; i++) {
-                    formData.append('anexos', anexosInput.files[i]);
+                    fd.append('anexos', anexosInput.files[i]);
                 }
             }
 
-            // Desabilita o botão
             submitBtn.disabled = true;
             submitBtn.querySelector('.btn-text').textContent = 'Enviando...';
 
             try {
-                const response = await fetch(`${AUTH_API_URL}/solicitacoes/criar`, {
+                const resp = await fetch(`${API}/solicitacoes/criar`, {
                     method: 'POST',
-                    headers: {
-                        'Accept': 'application/json',
-                        'Authorization': `Bearer ${getToken()}`
-                    },
-                    body: formData
+                    headers: multipartHeaders(),
+                    body: fd
                 });
 
-                if (response.ok) {
-                    // 200 OK - Solicitação criada com sucesso
-                    showSuccess();
+                if (resp.ok) {
+                    if (formCard) formCard.style.display = 'none';
+                    if (successMsg) { successMsg.style.display = 'flex'; successMsg.scrollIntoView({ behavior: 'smooth' }); }
                     form.reset();
+                    // Redireciona para Minhas Solicitações
+                    setTimeout(() => { window.location.href = '/pages/menu.cliente/menuCliente.html'; }, 2500);
 
-                } else if (response.status === 400) {
-                    // 400 Bad Request - Tipo de arquivo inválido
-                    showError('✗ Tipo de arquivo inválido. Envie apenas imagens ou vídeos.');
-
-                } else if (response.status === 401) {
-                    // 401 Unauthorized - Token inválido
-                    showError('✗ Sessão expirada. Faça login novamente.');
-                    setTimeout(() => { window.location.href = '/login'; }, 2000);
-
-                } else if (response.status === 404) {
-                    // 404 Not Found - Venda ou item não encontrado
-                    showError('✗ Venda ou item não encontrado. Verifique o ID do item.');
-
-                } else if (response.status === 409) {
-                    // 409 Conflict - Prazo expirado, quantidade inválida ou status não permite
-                    let msg = '✗ Não foi possível criar a solicitação.';
-                    try {
-                        const errBody = await response.text();
-                        if (errBody) msg = `✗ ${errBody}`;
-                    } catch (e) { /* ignora */ }
+                } else if (resp.status === 400) { showError('Tipo de arquivo inválido. Envie apenas imagens ou vídeos.');
+                } else if (resp.status === 401) { showError('Sessão expirada.'); setTimeout(() => { window.location.href = '/pages/login/login.html'; }, 2000);
+                } else if (resp.status === 404) { showError('Venda ou item não encontrado.');
+                } else if (resp.status === 409) {
+                    let msg = 'Não foi possível criar a solicitação.';
+                    try { const t = await resp.text(); if (t) msg = t; } catch(x){}
                     showError(msg);
+                } else if (resp.status === 422) { showError('Erro de validação. Verifique os campos.');
+                } else { showError('Erro inesperado. Tente novamente.'); }
 
-                } else if (response.status === 422) {
-                    // 422 Unprocessable Entity - Erro de validação
-                    showError('✗ Erro de validação. Verifique os campos preenchidos.');
-
-                } else {
-                    showError('✗ Erro inesperado. Tente novamente.');
-                }
-
-            } catch (error) {
-                console.error('Erro ao criar solicitação:', error);
-                showError('✗ Erro de conexão. Verifique sua internet.');
+            } catch (err) {
+                console.error('Erro ao criar solicitação:', err);
+                showError('Erro de conexão. Verifique sua internet.');
             } finally {
                 submitBtn.disabled = false;
                 submitBtn.querySelector('.btn-text').textContent = 'Enviar Solicitação';
             }
         });
     }
+
+    // INIT
+    carregarItens();
 });

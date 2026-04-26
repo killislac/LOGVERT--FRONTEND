@@ -1,205 +1,144 @@
 document.addEventListener('DOMContentLoaded', () => {
 
     // =============================================
-    // CONFIGURAÇÃO
+    // CONFIGURAÇÃO — Rota base sempre /logvert
     // =============================================
-    const AUTH_API_URL = 'http://localhost:8080/logvert';
-
-    // =============================================
-    // LÓGICA DO PAINEL (Sidebar, Mobile Menu, Dropdown)
-    // =============================================
-
-    // Sidebar toggle
-    const sidebarToggle = document.getElementById('sidebarToggle');
-    if (sidebarToggle) {
-        sidebarToggle.addEventListener('click', () => {
-            document.body.classList.toggle('sidebar-collapsed');
-        });
-    }
-
-    // Menu responsivo
-    const menuToggle = document.getElementById('mobileMenuToggle');
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.querySelector('.overlay');
-
-    const openMenu = () => {
-        if (sidebar && overlay) {
-            sidebar.classList.add('active');
-            overlay.classList.add('active');
-        }
-    };
-    const closeMenu = () => {
-        if (sidebar && overlay) {
-            sidebar.classList.remove('active');
-            overlay.classList.remove('active');
-        }
-    };
-
-    if (menuToggle) menuToggle.addEventListener('click', openMenu);
-    if (overlay) overlay.addEventListener('click', closeMenu);
-
-    // Dropdowns do header
-    const dropdownToggles = document.querySelectorAll('.header-action-btn');
-    dropdownToggles.forEach(toggle => {
-        toggle.addEventListener('click', (event) => {
-            event.stopPropagation();
-            const dropdownId = toggle.id.replace('Btn', 'Dropdown');
-            const currentDropdown = document.getElementById(dropdownId);
-
-            document.querySelectorAll('.dropdown-menu').forEach(menu => {
-                if (menu.id !== dropdownId) menu.classList.remove('active');
-            });
-            if (currentDropdown) currentDropdown.classList.toggle('active');
-        });
-    });
-    window.addEventListener('click', () => {
-        document.querySelectorAll('.dropdown-menu').forEach(menu => {
-            menu.classList.remove('active');
-        });
-    });
-
-    // Partículas
-    if (document.getElementById('dashboard-particles') && typeof particlesJS !== 'undefined') {
-        particlesJS("dashboard-particles", {
-            "particles": {
-                "number": { "value": 50, "density": { "enable": true, "value_area": 800 } },
-                "color": { "value": "#ffffff" },
-                "shape": { "type": "circle" },
-                "opacity": { "value": 0.2, "random": true },
-                "size": { "value": 3, "random": true },
-                "line_linked": { "enable": true, "distance": 150, "color": "#ffffff", "opacity": 0.1, "width": 1 },
-                "move": { "enable": true, "speed": 1.5, "direction": "none", "random": true, "out_mode": "out" }
-            },
-            "interactivity": {
-                "detect_on": "canvas",
-                "events": { "onhover": { "enable": true, "mode": "grab" }, "resize": true },
-                "modes": { "grab": { "distance": 140, "line_linked": { "opacity": 0.3 } } }
-            },
-            "retina_detect": true
-        });
-    }
-
-
-    // =============================================
-    // FUNÇÕES AUXILIARES
-    // =============================================
+    const API = 'http://localhost:8080/logvert';
     const getToken = () => localStorage.getItem('authToken');
 
-    const authHeaders = () => ({
+    const jsonHeaders = () => ({
         'Accept': 'application/json',
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${getToken()}`
     });
 
-    const getStatusBadgeClass = (status) => {
-        const map = {
-            'Pendente': 'status-pending',
-            'Aprovada': 'status-approved',
-            'Em Trânsito': 'status-sent',
-            'Concluída': 'status-completed',
-            'Rejeitada': 'status-rejected',
-            'Cancelada': 'status-cancelled'
-        };
-        return map[status] || 'status-pending';
-    };
+    const multipartHeaders = () => ({
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${getToken()}`
+    });
+
+    // =============================================
+    // VERIFICAÇÃO DE AUTENTICAÇÃO
+    // =============================================
+    if (!getToken()) {
+        window.location.href = '/pages/login/login.html';
+        return;
+    }
+
+    // Welcome dinâmico
+    const userName = localStorage.getItem('userName') || localStorage.getItem('consumidorNome') || 'Cliente';
+    const welcomeEl = document.getElementById('welcome-user');
+    if (welcomeEl) welcomeEl.textContent = `Bem-vindo, ${userName}`;
+
+    // =============================================
+    // SIDEBAR / MOBILE / DROPDOWNS
+    // =============================================
+    const sidebarToggle = document.getElementById('sidebarToggle');
+    if (sidebarToggle) sidebarToggle.addEventListener('click', () => document.body.classList.toggle('sidebar-collapsed'));
+
+    const menuToggle = document.getElementById('mobileMenuToggle');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.querySelector('.overlay');
+    if (menuToggle) menuToggle.addEventListener('click', () => { sidebar?.classList.add('active'); overlay?.classList.add('active'); });
+    if (overlay) overlay.addEventListener('click', () => { sidebar?.classList.remove('active'); overlay?.classList.remove('active'); });
+
+    document.querySelectorAll('.header-action-btn').forEach(toggle => {
+        toggle.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const ddId = toggle.id.replace('Btn', 'Dropdown');
+            const dd = document.getElementById(ddId);
+            document.querySelectorAll('.dropdown-menu').forEach(m => { if (m.id !== ddId) m.classList.remove('active'); });
+            if (dd) dd.classList.toggle('active');
+        });
+    });
+    window.addEventListener('click', () => document.querySelectorAll('.dropdown-menu').forEach(m => m.classList.remove('active')));
+
+    // Partículas
+    if (document.getElementById('dashboard-particles') && typeof particlesJS !== 'undefined') {
+        particlesJS("dashboard-particles", {
+            particles: { number: { value: 50, density: { enable: true, value_area: 800 } }, color: { value: "#ffffff" }, shape: { type: "circle" }, opacity: { value: 0.2, random: true }, size: { value: 3, random: true }, line_linked: { enable: true, distance: 150, color: "#ffffff", opacity: 0.1, width: 1 }, move: { enable: true, speed: 1.5, direction: "none", random: true, out_mode: "out" } },
+            interactivity: { detect_on: "canvas", events: { onhover: { enable: true, mode: "grab" }, resize: true }, modes: { grab: { distance: 140, line_linked: { opacity: 0.3 } } } },
+            retina_detect: true
+        });
+    }
+
+    // =============================================
+    // HELPERS
+    // =============================================
+    const getStatusClass = (s) => ({ 'Pendente': 'status-pending', 'Aprovada': 'status-approved', 'Em Trânsito': 'status-sent', 'Concluída': 'status-completed', 'Rejeitada': 'status-rejected', 'Cancelada': 'status-cancelled' }[s] || 'status-pending');
 
     const feedbackDiv = document.getElementById('feedback-message');
-    const showFeedback = (message, type) => {
+    const showFeedback = (msg, type) => {
         if (!feedbackDiv) return;
-        feedbackDiv.textContent = message;
+        feedbackDiv.textContent = msg;
         feedbackDiv.className = `feedback-message ${type}`;
         feedbackDiv.style.display = 'block';
         setTimeout(() => { feedbackDiv.style.display = 'none'; }, 5000);
     };
 
-
     // =============================================
-    // CARREGAR SOLICITAÇÕES DO CONSUMIDOR
-    // GET /logvert/solicitacoes (usa o mesmo endpoint, filtrado pelo token do consumidor)
+    // LISTAR SOLICITAÇÕES DO CONSUMIDOR
+    // GET /logvert/solicitacoes?page=0&size=50&sort=dataSolicitacao,desc
     // =============================================
     const grid = document.getElementById('solicitacoes-cliente-grid');
     const loadingDiv = document.getElementById('loading-solicitacoes');
     const emptyDiv = document.getElementById('empty-message');
-
-    let solicitacoesData = []; // Cache local para uso no modal
+    let solicitacoesData = [];
 
     async function loadMinhasSolicitacoes() {
         if (!grid) return;
 
         try {
-            const response = await fetch(
-                `${AUTH_API_URL}/solicitacoes?page=0&size=50&sort=dataSolicitacao,desc`,
-                { method: 'GET', headers: authHeaders() }
-            );
+            const resp = await fetch(`${API}/solicitacoes?page=0&size=50&sort=dataSolicitacao,desc`, { headers: jsonHeaders() });
 
-            if (response.status === 401) {
-                showFeedback('✗ Sessão expirada. Faça login novamente.', 'error');
-                setTimeout(() => { window.location.href = '/login'; }, 2000);
+            if (resp.status === 401) {
+                showFeedback('Sessão expirada. Faça login novamente.', 'error');
+                setTimeout(() => { window.location.href = '/pages/login/login.html'; }, 2000);
                 return;
             }
+            if (!resp.ok) throw new Error(`Erro ${resp.status}`);
 
-            if (!response.ok) throw new Error(`Erro ${response.status}`);
-
-            const data = await response.json();
-            const solicitacoes = data.content || [];
-            solicitacoesData = solicitacoes;
+            const data = await resp.json();
+            const sols = data.content || [];
+            solicitacoesData = sols;
 
             if (loadingDiv) loadingDiv.style.display = 'none';
+            if (sols.length === 0) { if (emptyDiv) emptyDiv.style.display = 'block'; return; }
+            if (emptyDiv) emptyDiv.style.display = 'none';
 
-            if (solicitacoes.length === 0) {
-                if (emptyDiv) emptyDiv.style.display = 'block';
-                return;
-            }
+            renderSolicitacoes(sols);
 
-            renderSolicitacoes(solicitacoes);
-
-        } catch (error) {
-            console.error('Erro ao carregar solicitações:', error);
-            if (loadingDiv) loadingDiv.innerHTML = `
-                <i class="fas fa-exclamation-triangle fa-2x" style="color: #e53935;"></i>
-                <p>Erro ao carregar solicitações. Verifique sua conexão.</p>`;
+        } catch (err) {
+            console.error('Erro ao carregar solicitações:', err);
+            if (loadingDiv) loadingDiv.innerHTML = '<i class="fas fa-exclamation-triangle fa-2x" style="color:#e53935;"></i><p>Erro ao carregar solicitações.</p>';
         }
     }
 
-    function renderSolicitacoes(solicitacoes) {
-        grid.innerHTML = solicitacoes.map(sol => {
+    function renderSolicitacoes(sols) {
+        grid.innerHTML = sols.map(sol => {
+            const canEdit = sol.statusSolicitacao === 'Pendente';
             const canCancel = sol.statusSolicitacao === 'Pendente' || sol.statusSolicitacao === 'Aprovada';
 
             return `
                 <div class="card" data-id="${sol.id}">
                     <div class="card-header">
                         <h3>Solicitação #${sol.id}</h3>
-                        <span class="status-badge ${getStatusBadgeClass(sol.statusSolicitacao)}">${sol.statusSolicitacao}</span>
+                        <span class="status-badge ${getStatusClass(sol.statusSolicitacao)}">${sol.statusSolicitacao}</span>
                     </div>
                     <p class="card-product">${sol.tipo} — ${sol.motivo || ''}</p>
                     <small style="color: var(--text-muted);">${sol.dataSolicitacao || ''}</small>
-                    <div style="margin-top: 10px; display: flex; gap: 8px;">
+                    <div style="margin-top: 10px; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
                         <a href="#" class="card-details" data-id="${sol.id}">Ver detalhes <i class="fa-solid fa-arrow-right"></i></a>
+                        ${canEdit ? `<a href="#" class="card-edit" data-id="${sol.id}" style="color: var(--neon-green-accent); text-decoration: none; font-weight: 500;"><i class="fas fa-edit"></i> Editar</a>` : ''}
                         ${canCancel ? `<a href="#" class="card-cancel" data-id="${sol.id}" style="color: #e53935; text-decoration: none; font-weight: 500;">Cancelar</a>` : ''}
                     </div>
-                </div>
-            `;
+                </div>`;
         }).join('');
 
-        // Event listeners para detalhes
-        document.querySelectorAll('.card-details').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const id = btn.getAttribute('data-id');
-                openDetailsModal(id);
-            });
-        });
-
-        // Event listeners para cancelar
-        document.querySelectorAll('.card-cancel').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                e.preventDefault();
-                const id = btn.getAttribute('data-id');
-                cancelarSolicitacao(id);
-            });
-        });
+        grid.querySelectorAll('.card-details').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); openDetailsModal(btn.dataset.id); }));
+        grid.querySelectorAll('.card-edit').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); openEditModal(btn.dataset.id); }));
+        grid.querySelectorAll('.card-cancel').forEach(btn => btn.addEventListener('click', (e) => { e.preventDefault(); cancelarSolicitacao(btn.dataset.id); }));
     }
-
 
     // =============================================
     // MODAL DE DETALHES
@@ -209,204 +148,200 @@ document.addEventListener('DOMContentLoaded', () => {
     function openDetailsModal(id) {
         const sol = solicitacoesData.find(s => String(s.id) === String(id));
         if (!sol) return;
-
         currentSolId = id;
 
         const modal = document.getElementById('modalDetalhes');
-        const modalPedido = document.getElementById('modalPedido');
-        const modalStatus = document.getElementById('modalStatus');
-        const modalProduto = document.getElementById('modalProduto');
-        const modalTipo = document.getElementById('modalTipo');
-        const modalMotivo = document.getElementById('modalMotivo');
-        const modalData = document.getElementById('modalData');
-        const modalAtualizacao = document.getElementById('modalAtualizacao');
-        const consumerActions = document.getElementById('modal-consumer-actions');
-
         if (!modal) return;
 
-        modalPedido.textContent = `Solicitação #${sol.id}`;
-        modalStatus.textContent = sol.statusSolicitacao;
-        modalStatus.className = `status-badge ${getStatusBadgeClass(sol.statusSolicitacao)}`;
-        modalProduto.textContent = `Venda #${sol.idVenda}`;
-        if (modalTipo) modalTipo.textContent = sol.tipo || '—';
-        if (modalMotivo) modalMotivo.textContent = sol.motivo || '—';
-        if (modalData) modalData.textContent = sol.dataSolicitacao || '—';
-        if (modalAtualizacao) modalAtualizacao.textContent = sol.dataAtualizacao || 'Sem atualização';
+        const set = (elId, val) => { const el = document.getElementById(elId); if (el) el.textContent = val || '—'; };
+        set('modalPedido', `Solicitação #${sol.id}`);
+        const ms = document.getElementById('modalStatus');
+        if (ms) { ms.textContent = sol.statusSolicitacao; ms.className = `status-badge ${getStatusClass(sol.statusSolicitacao)}`; }
+        set('modalProduto', `Venda #${sol.idVenda}`);
+        set('modalTipo', sol.tipo);
+        set('modalMotivo', sol.motivo);
+        set('modalData', sol.dataSolicitacao);
+        set('modalAtualizacao', sol.dataAtualizacao || 'Sem atualização');
 
-        // Mostrar botão cancelar se status permite
         const canCancel = sol.statusSolicitacao === 'Pendente' || sol.statusSolicitacao === 'Aprovada';
-        if (consumerActions) consumerActions.style.display = canCancel ? 'block' : 'none';
+        const canEdit = sol.statusSolicitacao === 'Pendente';
+        const actions = document.getElementById('modal-consumer-actions');
+        if (actions) actions.style.display = canCancel ? 'block' : 'none';
+        const btnEdit = document.getElementById('btn-editar-sol');
+        if (btnEdit) btnEdit.style.display = canEdit ? 'inline-flex' : 'none';
 
         modal.classList.add('active');
     }
 
-    // Fechar modal
+    // Fechar modal detalhes
     document.addEventListener('click', (e) => {
-        if (e.target.closest('.modal-close-btn')) {
-            const modal = document.getElementById('modalDetalhes');
-            if (modal) modal.classList.remove('active');
+        if (e.target.closest('.modal-close-btn') && e.target.closest('#modalDetalhes')) {
+            document.getElementById('modalDetalhes')?.classList.remove('active');
         }
         if (e.target.id === 'modalDetalhes') {
-            const modal = document.getElementById('modalDetalhes');
-            if (modal) modal.classList.remove('active');
+            document.getElementById('modalDetalhes')?.classList.remove('active');
         }
     });
 
+    // Botões do modal de detalhes
+    const btnEditarModal = document.getElementById('btn-editar-sol');
+    if (btnEditarModal) btnEditarModal.addEventListener('click', () => { if (currentSolId) openEditModal(currentSolId); });
+
+    const btnCancelar = document.getElementById('btn-cancelar-sol');
+    if (btnCancelar) btnCancelar.addEventListener('click', () => { if (currentSolId) cancelarSolicitacao(currentSolId); });
 
     // =============================================
-    // CANCELAR SOLICITAÇÃO
-    // PUT /logvert/solicitacoes/cancelar/{id}
-    // Body: { idItem, quantidade, tipo, motivo }
+    // EDITAR SOLICITAÇÃO — PUT /logvert/solicitacoes/{id}
+    // multipart/form-data: solicitacao (JSON) + anexos (files)
     // =============================================
-    const btnCancelar = document.getElementById('btn-cancelar-sol');
-    if (btnCancelar) {
-        btnCancelar.addEventListener('click', () => {
-            if (currentSolId) cancelarSolicitacao(currentSolId);
+    const editModal = document.getElementById('modalEditar');
+    const closeEditBtn = document.getElementById('closeEditModal');
+    const formEditar = document.getElementById('form-editar-solicitacao');
+    const editErrorMsg = document.getElementById('edit-error-msg');
+
+    function openEditModal(id) {
+        const sol = solicitacoesData.find(s => String(s.id) === String(id));
+        if (!sol) return;
+
+        document.getElementById('modalDetalhes')?.classList.remove('active');
+
+        document.getElementById('edit-sol-id').value = sol.id;
+
+        // Tipo
+        const tipoSel = document.getElementById('edit-tipo');
+        if (sol.tipo) {
+            const t = sol.tipo.toLowerCase();
+            tipoSel.value = (t === 'troca') ? 'troca' : (t.includes('devol') ? 'devolucao' : '');
+        }
+
+        // Motivo
+        const motivoSel = document.getElementById('edit-motivo');
+        const detalhes = document.getElementById('edit-detalhes');
+        const predef = ['Tamanho incorreto', 'Produto com defeito na costura', 'Arrependimento', 'Item enviado errado'];
+        if (predef.includes(sol.motivo)) { motivoSel.value = sol.motivo; detalhes.value = ''; }
+        else { motivoSel.value = 'Outro'; detalhes.value = sol.motivo || ''; }
+
+        document.getElementById('edit-idItem').value = '';
+        document.getElementById('edit-quantidade').value = '';
+        document.getElementById('edit-anexos').value = '';
+        if (editErrorMsg) editErrorMsg.style.display = 'none';
+
+        if (editModal) editModal.classList.add('active');
+    }
+
+    if (closeEditBtn) closeEditBtn.addEventListener('click', () => editModal?.classList.remove('active'));
+    if (editModal) editModal.addEventListener('click', (e) => { if (e.target === editModal) editModal.classList.remove('active'); });
+
+    if (formEditar) {
+        formEditar.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const solId = document.getElementById('edit-sol-id').value;
+            const idItem = parseInt(document.getElementById('edit-idItem').value);
+            const quantidade = parseFloat(document.getElementById('edit-quantidade').value);
+            const tipo = document.getElementById('edit-tipo').value;
+            const motivoVal = document.getElementById('edit-motivo').value;
+            const detalhesVal = document.getElementById('edit-detalhes').value;
+            const anexosInput = document.getElementById('edit-anexos');
+
+            const motivo = motivoVal === 'Outro' ? detalhesVal : motivoVal;
+
+            if (!idItem || idItem < 1) { showEditError('Informe o ID do item.'); return; }
+            if (!quantidade || quantidade < 1) { showEditError('Informe a quantidade.'); return; }
+            if (!tipo) { showEditError('Selecione o tipo.'); return; }
+            if (!motivo) { showEditError('Selecione ou descreva o motivo.'); return; }
+
+            const fd = new FormData();
+            fd.append('solicitacao', new Blob([JSON.stringify({ idItem, quantidade, tipo, motivo })], { type: 'application/json' }));
+            if (anexosInput && anexosInput.files.length > 0) {
+                for (let i = 0; i < anexosInput.files.length; i++) fd.append('anexos', anexosInput.files[i]);
+            }
+
+            const btn = document.getElementById('btn-salvar-edicao');
+            btn.disabled = true; btn.textContent = 'Salvando...';
+
+            try {
+                const resp = await fetch(`${API}/solicitacoes/${solId}`, {
+                    method: 'PUT', headers: multipartHeaders(), body: fd
+                });
+
+                if (resp.ok) {
+                    editModal?.classList.remove('active');
+                    showFeedback('Solicitação editada com sucesso!', 'success');
+                    loadMinhasSolicitacoes();
+                } else if (resp.status === 400) { showEditError('Tipo de arquivo inválido.');
+                } else if (resp.status === 401) { showEditError('Sessão expirada.'); setTimeout(() => { window.location.href = '/pages/login/login.html'; }, 2000);
+                } else if (resp.status === 403) { showEditError('Acesso negado.');
+                } else if (resp.status === 404) { showEditError('Solicitação ou item não encontrado.');
+                } else if (resp.status === 409) { showEditError('Não pode ser alterada no status atual.');
+                } else if (resp.status === 422) { showEditError('Erro de validação.');
+                } else { showEditError('Erro inesperado.'); }
+
+            } catch (err) {
+                console.error('Erro ao editar:', err);
+                showEditError('Erro de conexão.');
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-save"></i> Salvar Alterações';
+            }
         });
     }
 
+    function showEditError(msg) {
+        if (editErrorMsg) { editErrorMsg.textContent = msg; editErrorMsg.style.display = 'block'; }
+    }
+
+    // =============================================
+    // CANCELAR SOLICITAÇÃO — PUT /logvert/solicitacoes/cancelar/{id}
+    // Body: { idItem, quantidade, tipo, motivo }
+    // =============================================
     async function cancelarSolicitacao(id) {
         if (!confirm('Deseja cancelar esta solicitação? Esta ação não pode ser desfeita.')) return;
 
         const sol = solicitacoesData.find(s => String(s.id) === String(id));
-        if (!sol) {
-            showFeedback('✗ Solicitação não encontrada.', 'error');
-            return;
-        }
+        if (!sol) { showFeedback('Solicitação não encontrada.', 'error'); return; }
 
-        // Monta o body conforme documentação
         const body = {
-            idItem: 1, // ID do item (será corrigido pelo back-end se necessário)
+            idItem: 1,
             quantidade: 1.0,
             tipo: sol.tipo ? sol.tipo.toLowerCase() : 'troca',
-            motivo: 'Cancelamento solicitado pelo consumidor'
+            motivo: 'Desistência do consumidor'
         };
 
         try {
-            const response = await fetch(`${AUTH_API_URL}/solicitacoes/cancelar/${id}`, {
-                method: 'PUT',
-                headers: authHeaders(),
-                body: JSON.stringify(body)
+            const resp = await fetch(`${API}/solicitacoes/cancelar/${id}`, {
+                method: 'PUT', headers: jsonHeaders(), body: JSON.stringify(body)
             });
 
-            if (response.ok) {
-                showFeedback('✓ Solicitação cancelada com sucesso.', 'success');
-                const modal = document.getElementById('modalDetalhes');
-                if (modal) modal.classList.remove('active');
+            if (resp.ok) {
+                showFeedback('Solicitação cancelada com sucesso.', 'success');
+                document.getElementById('modalDetalhes')?.classList.remove('active');
                 loadMinhasSolicitacoes();
+            } else if (resp.status === 401) { showFeedback('Sessão expirada.', 'error');
+            } else if (resp.status === 403) { showFeedback('Acesso negado.', 'error');
+            } else if (resp.status === 404) { showFeedback('Solicitação não encontrada.', 'error');
+            } else if (resp.status === 409) { showFeedback('Não pode ser cancelada no status atual.', 'error');
+            } else { showFeedback('Erro ao cancelar.', 'error'); }
 
-            } else if (response.status === 401) {
-                showFeedback('✗ Sessão expirada.', 'error');
-            } else if (response.status === 403) {
-                showFeedback('✗ Acesso negado.', 'error');
-            } else if (response.status === 404) {
-                showFeedback('✗ Solicitação ou item não encontrado.', 'error');
-            } else if (response.status === 409) {
-                showFeedback('✗ Solicitação não pode ser cancelada no status atual.', 'error');
-            } else if (response.status === 422) {
-                showFeedback('✗ Erro de validação.', 'error');
-            } else {
-                showFeedback('✗ Erro ao cancelar solicitação.', 'error');
-            }
-
-        } catch (error) {
-            console.error('Erro ao cancelar:', error);
-            showFeedback('✗ Erro de conexão.', 'error');
+        } catch (err) {
+            console.error('Erro ao cancelar:', err);
+            showFeedback('Erro de conexão.', 'error');
         }
     }
 
-
     // =============================================
-    // LÓGICA EXISTENTE: Formulário de Solicitação (ativado em solicitacao.html)
+    // LOGOUT
     // =============================================
-    const form = document.getElementById('form-solicitacao');
-    const formCard = document.querySelector('.form-card');
-    const successMessage = document.getElementById('successMessage');
-
-    if (form && !document.getElementById('idItem')) {
-        // Fallback para a lógica antiga se o form existir sem o novo JS
-        form.addEventListener('submit', function(event) {
-            event.preventDefault();
-            if (formCard) formCard.style.display = 'none';
-            if (successMessage) {
-                successMessage.style.display = 'flex';
-                successMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-        });
-    }
-
-
-    // =============================================
-    // LÓGICA EXISTENTE: Formulário "Meus Dados"
-    // =============================================
-    const dadosForm = document.getElementById('form-meus-dados');
-    const dadosSuccessMessage = document.getElementById('successMessage');
-
-    if (dadosForm) {
-        dadosForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            if (dadosSuccessMessage) {
-                dadosSuccessMessage.style.display = 'flex';
-                dadosSuccessMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            setTimeout(() => {
-                if (dadosSuccessMessage) dadosSuccessMessage.style.display = 'none';
-            }, 5000);
-        });
-    }
-
-
-    // =============================================
-    // LÓGICA EXISTENTE: Formulário "Alterar Senha"
-    // =============================================
-    const senhaForm = document.getElementById('form-alterar-senha');
-    const passwordSuccessMessage = document.getElementById('passwordSuccessMessage');
-
-    if (senhaForm) {
-        senhaForm.addEventListener('submit', function(event) {
-            event.preventDefault();
-            if (passwordSuccessMessage) {
-                passwordSuccessMessage.style.display = 'flex';
-                passwordSuccessMessage.scrollIntoView({ behavior: 'smooth', block: 'start' });
-            }
-            setTimeout(() => {
-                if (passwordSuccessMessage) passwordSuccessMessage.style.display = 'none';
-            }, 5000);
-        });
-    }
-
-
-    // =============================================
-    // LÓGICA EXISTENTE: Acordeão (FAQ)
-    // =============================================
-    const accordionHeaders = document.querySelectorAll('.accordion-header');
-    accordionHeaders.forEach(header => {
-        header.addEventListener('click', () => {
-            const item = header.closest('.accordion-item');
-            const content = item.querySelector('.accordion-content');
-
-            document.querySelectorAll('.accordion-item.active').forEach(activeItem => {
-                const activeContent = activeItem.querySelector('.accordion-content');
-                if (activeItem !== item) {
-                    activeItem.classList.remove('active');
-                    activeContent.style.maxHeight = null;
-                }
-            });
-
-            item.classList.toggle('active');
-            if (item.classList.contains('active')) {
-                content.style.maxHeight = content.scrollHeight + "px";
-            } else {
-                content.style.maxHeight = null;
-            }
+    document.querySelectorAll('a[href*="login"]').forEach(link => {
+        link.addEventListener('click', (e) => {
+            e.preventDefault();
+            localStorage.clear();
+            window.location.href = '/pages/login/login.html';
         });
     });
-
 
     // =============================================
     // INICIALIZAÇÃO
     // =============================================
-    if (grid) {
-        loadMinhasSolicitacoes();
-    }
+    if (grid) loadMinhasSolicitacoes();
 });
