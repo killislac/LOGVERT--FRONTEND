@@ -3,43 +3,58 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     // 1. REFERÊNCIAS DO DOM
     // =============================================
-    const tableBody          = document.getElementById('vendasTableBody');
-    const vendaFormModal     = document.getElementById('vendaFormModal');
-    const openModalBtn       = document.getElementById('openModalBtn');
-    const closeVendaFormBtn  = document.getElementById('closeVendaFormModalBtn');
-    const vendaForm          = document.getElementById('vendaForm');
-    const vendaMessage       = document.getElementById('vendaMessage');
-    const submitVendaBtn     = document.getElementById('submitVendaBtn');
+    const tableBody = document.getElementById('vendasTableBody');
+    const vendaFormModal = document.getElementById('vendaFormModal');
+    const openModalBtn = document.getElementById('openModalBtn');
+    const closeVendaFormBtn = document.getElementById('closeVendaFormModalBtn');
+    const vendaForm = document.getElementById('vendaForm');
+    const vendaMessage = document.getElementById('vendaMessage');
+    const submitVendaBtn = document.getElementById('submitVendaBtn');
 
-    const detalhesModal      = document.getElementById('detalhesVendaModal');
-    const closeDetalhesBtn   = document.getElementById('closeDetalhesModalBtn');
-    const btnEditarDetalhes  = document.getElementById('btnEditarVendaDetalhes');
+    const detalhesModal = document.getElementById('detalhesVendaModal');
+    const closeDetalhesBtn = document.getElementById('closeDetalhesModalBtn');
+    const btnEditarDetalhes = document.getElementById('btnEditarVendaDetalhes');
     const btnDesativarDetalhes = document.getElementById('btnDesativarVendaDetalhes');
 
-    const confirmOverlay     = document.getElementById('confirmOverlay');
-    const confirmTitle       = document.getElementById('confirmTitle');
-    const confirmMessage     = document.getElementById('confirmMessage');
-    const confirmIcon        = document.getElementById('confirmIcon');
-    const confirmCancelBtn   = document.getElementById('confirmCancelBtn');
-    const confirmOkBtn       = document.getElementById('confirmOkBtn');
-    const toastContainer     = document.getElementById('toastContainer');
+    const confirmOverlay = document.getElementById('confirmOverlay');
+    const confirmTitle = document.getElementById('confirmTitle');
+    const confirmMessage = document.getElementById('confirmMessage');
+    const confirmIcon = document.getElementById('confirmIcon');
+    const confirmCancelBtn = document.getElementById('confirmCancelBtn');
+    const confirmOkBtn = document.getElementById('confirmOkBtn');
+    const toastContainer = document.getElementById('toastContainer');
 
     // KPIs
-    const statReceitaTotal  = document.getElementById('statReceitaTotal');
-    const statEmAndamento   = document.getElementById('statEmAndamento');
-    const statTicketMedio   = document.getElementById('statTicketMedio');
-    const statEntregues     = document.getElementById('statEntregues');
+    const statReceitaTotal = document.getElementById('statReceitaTotal');
+    const statEmAndamento = document.getElementById('statEmAndamento');
+    const statTicketMedio = document.getElementById('statTicketMedio');
+    const statEntregues = document.getElementById('statEntregues');
 
     // Estado
-    let editingVendaId   = null;  // null = criar, number = editar
+    let editingVendaId = null;  // null = criar, number = editar
     let vendaDetalheAtual = null; // venda carregada no modal de detalhes
 
     // ✅ Rota correta — API_BASE_URL já contém /logvert
     const VENDAS_URL = `${API_BASE_URL}/vendas`;
+    const CONSUMIDORES_URL = `${API_BASE_URL}/consumidores`;
+    const PRODUTOS_URL = `${API_BASE_URL}/produtos`;
+
+    let produtosCache = [];
 
     // Container de itens da venda
     const itensContainer = document.getElementById('itensVendaContainer');
-    const btnAddItem     = document.getElementById('btnAddItem');
+    const btnAddItem = document.getElementById('btnAddItem');
+
+    // Consumidor searchable select
+    const consumidorWrapper = document.getElementById('consumidorSelectWrapper');
+    const consumidorTrigger = document.getElementById('consumidorTrigger');
+    const consumidorDropdown = document.getElementById('consumidorDropdown');
+    const consumidorSearchInput = document.getElementById('consumidorSearchInput');
+    const consumidorOptionsList = document.getElementById('consumidorOptionsList');
+    const idConsumidorHidden = document.getElementById('idConsumidor');
+
+    let consumidoresCache = [];
+    let selectedConsumidorId = null;
 
     // =============================================
     // 2a. GERENCIAMENTO DE ITENS DA VENDA (campos estruturados)
@@ -51,15 +66,57 @@ document.addEventListener('DOMContentLoaded', () => {
         const row = document.createElement('div');
         row.className = 'item-venda-row';
         row.setAttribute('data-index', idx);
+
+        // Determina o texto de exibição inicial do produto
+        let produtoTriggerContent = `<span class="select-search-value placeholder">Selecione um produto...</span>`;
+        if (dados.idProduto) {
+            // Tenta encontrar o produto no cache
+            const prod = produtosCache.find(p => p.idProduto === parseInt(dados.idProduto));
+            if (prod) {
+                produtoTriggerContent = `
+                    <div class="selected-consumer-chip">
+                        <div class="option-avatar" style="background:linear-gradient(135deg,#f39c12,#e67e22);font-size:0.6rem;">📦</div>
+                        <span class="chip-name">${prod.descricao}</span>
+                        <span class="chip-id">#${prod.idProduto}</span>
+                    </div>`;
+            } else {
+                produtoTriggerContent = `
+                    <div class="selected-consumer-chip">
+                        <div class="option-avatar" style="background:linear-gradient(135deg,#f39c12,#e67e22);font-size:0.6rem;">📦</div>
+                        <span class="chip-name">Produto #${dados.idProduto}</span>
+                        <span class="chip-id">#${dados.idProduto}</span>
+                    </div>`;
+            }
+        }
+
         row.innerHTML = `
             <div class="item-row-header">
                 <span class="item-row-label">Item ${idx}</span>
                 <button type="button" class="btn-remove-item" title="Remover item">&times;</button>
             </div>
             <div class="item-row-fields">
-                <div class="item-field">
-                    <label>ID Produto <span class="required">*</span></label>
-                    <input type="number" data-field="idProduto" min="1" placeholder="Ex: 101" value="${dados.idProduto || ''}" required>
+                <div class="item-field item-field-produto">
+                    <label>Produto <span class="required">*</span></label>
+                    <div class="select-search-wrapper produto-select-wrapper">
+                        <div class="select-search-trigger produto-trigger" tabindex="0">
+                            ${produtoTriggerContent}
+                            <i class="fas fa-chevron-down select-search-arrow"></i>
+                        </div>
+                        <div class="select-search-dropdown produto-dropdown">
+                            <div class="select-search-input-wrapper">
+                                <i class="fas fa-search"></i>
+                                <input type="text" class="produto-search-input"
+                                       placeholder="Buscar produto..."
+                                       autocomplete="off">
+                            </div>
+                            <ul class="select-search-options produto-options-list">
+                                <li class="select-search-loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Carregando...
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <input type="hidden" data-field="idProduto" value="${dados.idProduto || ''}" required>
                 </div>
                 <div class="item-field">
                     <label>Quantidade <span class="required">*</span></label>
@@ -75,7 +132,169 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
+
+        // Wire up the product dropdown for this row
+        initProdutoDropdown(row);
         return row;
+    };
+
+    // Initialize product dropdown events for a given item row
+    const initProdutoDropdown = (row) => {
+        const wrapper = row.querySelector('.produto-select-wrapper');
+        const trigger = row.querySelector('.produto-trigger');
+        const searchInput = row.querySelector('.produto-search-input');
+        const optionsList = row.querySelector('.produto-options-list');
+        const hiddenInput = row.querySelector('[data-field="idProduto"]');
+
+        if (!wrapper || !trigger) return;
+
+        const renderProdutoOptions = (produtos, searchTerm = '') => {
+            optionsList.innerHTML = '';
+            if (produtos.length === 0) {
+                const msg = searchTerm
+                    ? `Nenhum produto para "${searchTerm}"`
+                    : 'Nenhum produto cadastrado.';
+                optionsList.innerHTML = `<li class="no-results">${msg}</li>`;
+                return;
+            }
+            const selectedId = parseInt(hiddenInput.value);
+            produtos.forEach(p => {
+                const li = document.createElement('li');
+                li.dataset.id = p.idProduto;
+                if (selectedId === p.idProduto) li.classList.add('selected');
+                const precoFmt = `R$ ${parseFloat(p.preco || 0).toFixed(2).replace('.', ',')}`;
+                li.innerHTML = `
+                    <div class="option-avatar" style="background:linear-gradient(135deg,#f39c12,#e67e22);font-size:0.6rem;">📦</div>
+                    <div class="option-info">
+                        <span class="option-name">${p.descricao || 'Sem descrição'}</span>
+                        <span class="option-detail">${precoFmt} · ${p.unidadeMedida || 'UN'}</span>
+                    </div>
+                    <span class="option-id">#${p.idProduto}</span>
+                `;
+                li.addEventListener('click', () => {
+                    hiddenInput.value = p.idProduto;
+                    // Auto-fill valor vendido with product price
+                    const valorInput = row.querySelector('[data-field="valorVendido"]');
+                    if (valorInput && !valorInput.value) {
+                        valorInput.value = p.preco || '';
+                    }
+                    trigger.innerHTML = `
+                        <div class="selected-consumer-chip">
+                            <div class="option-avatar" style="background:linear-gradient(135deg,#f39c12,#e67e22);font-size:0.6rem;">📦</div>
+                            <span class="chip-name">${p.descricao || 'Sem descrição'}</span>
+                            <span class="chip-id">#${p.idProduto}</span>
+                        </div>
+                        <i class="fas fa-chevron-down select-search-arrow"></i>
+                    `;
+                    wrapper.classList.remove('open');
+                    if (searchInput) searchInput.value = '';
+                    renderProdutoOptions(produtosCache);
+                });
+                optionsList.appendChild(li);
+            });
+        };
+
+        // Populate with cached products
+        renderProdutoOptions(produtosCache);
+
+        // Toggle
+        trigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            // Close all other product dropdowns first
+            document.querySelectorAll('.produto-select-wrapper.open').forEach(w => {
+                if (w !== wrapper) w.classList.remove('open');
+            });
+            wrapper.classList.toggle('open');
+            if (wrapper.classList.contains('open')) {
+                renderProdutoOptions(produtosCache);
+                setTimeout(() => { if (searchInput) searchInput.focus(); }, 100);
+            }
+        });
+
+        // Search
+        if (searchInput) {
+            searchInput.addEventListener('input', (e) => {
+                const term = e.target.value.toLowerCase().trim();
+                if (!term) { renderProdutoOptions(produtosCache); return; }
+                const filtered = produtosCache.filter(p => {
+                    const desc = (p.descricao || '').toLowerCase();
+                    const id = String(p.idProduto);
+                    return desc.includes(term) || id.includes(term);
+                });
+                renderProdutoOptions(filtered, e.target.value);
+            });
+            searchInput.addEventListener('keydown', (e) => e.stopPropagation());
+        }
+    };
+
+    // Close product dropdowns on outside click
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.produto-select-wrapper')) {
+            document.querySelectorAll('.produto-select-wrapper.open').forEach(w => w.classList.remove('open'));
+        }
+    });
+
+    // Load products from API (cached)
+    const carregarProdutosSelect = async () => {
+        try {
+            const response = await fetch(`${PRODUTOS_URL}?page=0&size=100`, {
+                method: 'GET',
+                headers: getAuthHeaders(),
+                cache: 'no-store'
+            });
+            if (!response.ok) throw new Error(`Status: ${response.status}`);
+            const dados = await response.json();
+            let produtos = [];
+            if (Array.isArray(dados)) produtos = dados;
+            else if (dados && Array.isArray(dados.content)) produtos = dados.content;
+            else if (dados && Array.isArray(dados.data)) produtos = dados.data;
+            produtosCache = produtos;
+            // Re-render all open product dropdowns
+            document.querySelectorAll('.produto-options-list').forEach(list => {
+                const wrapper = list.closest('.produto-select-wrapper');
+                const row = list.closest('.item-venda-row');
+                if (row) {
+                    const hiddenInput = row.querySelector('[data-field="idProduto"]');
+                    const selectedId = parseInt(hiddenInput?.value);
+                    list.innerHTML = '';
+                    produtosCache.forEach(p => {
+                        const li = document.createElement('li');
+                        li.dataset.id = p.idProduto;
+                        if (selectedId === p.idProduto) li.classList.add('selected');
+                        const precoFmt = `R$ ${parseFloat(p.preco || 0).toFixed(2).replace('.', ',')}`;
+                        li.innerHTML = `
+                            <div class="option-avatar" style="background:linear-gradient(135deg,#f39c12,#e67e22);font-size:0.6rem;">📦</div>
+                            <div class="option-info">
+                                <span class="option-name">${p.descricao || 'Sem descrição'}</span>
+                                <span class="option-detail">${precoFmt} · ${p.unidadeMedida || 'UN'}</span>
+                            </div>
+                            <span class="option-id">#${p.idProduto}</span>
+                        `;
+                        li.addEventListener('click', () => {
+                            hiddenInput.value = p.idProduto;
+                            const valorInput = row.querySelector('[data-field="valorVendido"]');
+                            if (valorInput && !valorInput.value) valorInput.value = p.preco || '';
+                            const trigger = row.querySelector('.produto-trigger');
+                            trigger.innerHTML = `
+                                <div class="selected-consumer-chip">
+                                    <div class="option-avatar" style="background:linear-gradient(135deg,#f39c12,#e67e22);font-size:0.6rem;">📦</div>
+                                    <span class="chip-name">${p.descricao || 'Sem descrição'}</span>
+                                    <span class="chip-id">#${p.idProduto}</span>
+                                </div>
+                                <i class="fas fa-chevron-down select-search-arrow"></i>
+                            `;
+                            wrapper.classList.remove('open');
+                        });
+                        list.appendChild(li);
+                    });
+                    if (produtosCache.length === 0) {
+                        list.innerHTML = '<li class="no-results">Nenhum produto cadastrado.</li>';
+                    }
+                }
+            });
+        } catch (error) {
+            console.error('Erro ao carregar produtos:', error);
+        }
     };
 
     const limparItensContainer = () => {
@@ -93,16 +312,16 @@ document.addEventListener('DOMContentLoaded', () => {
         const rows = itensContainer.querySelectorAll('.item-venda-row');
         const itens = [];
         rows.forEach(row => {
-            const idProduto    = row.querySelector('[data-field="idProduto"]')?.value;
-            const quantidade   = row.querySelector('[data-field="quantidade"]')?.value;
+            const idProduto = row.querySelector('[data-field="idProduto"]')?.value;
+            const quantidade = row.querySelector('[data-field="quantidade"]')?.value;
             const valorVendido = row.querySelector('[data-field="valorVendido"]')?.value;
-            const detalhe      = row.querySelector('[data-field="detalhe"]')?.value || '';
+            const detalhe = row.querySelector('[data-field="detalhe"]')?.value || '';
 
             if (idProduto && quantidade && valorVendido) {
                 itens.push({
-                    idProduto:    parseInt(idProduto),
-                    quantidade:   parseFloat(quantidade),
-                    detalhe:      detalhe.trim(),
+                    idProduto: parseInt(idProduto),
+                    quantidade: parseFloat(quantidade),
+                    detalhe: detalhe.trim(),
                     valorVendido: parseFloat(valorVendido)
                 });
             }
@@ -140,15 +359,147 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // =============================================
+    // 2b. CONSUMIDOR SEARCHABLE SELECT
+    // =============================================
+
+    const getInitials = (nome) => {
+        if (!nome) return '?';
+        const parts = nome.trim().split(/\s+/);
+        if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+        return parts[0].substring(0, 2).toUpperCase();
+    };
+
+    const carregarConsumidoresSelect = async () => {
+        consumidorOptionsList.innerHTML = `
+            <li class="select-search-loading">
+                <i class="fas fa-spinner fa-spin"></i> Carregando consumidores...
+            </li>`;
+        try {
+            const response = await fetch(CONSUMIDORES_URL, {
+                method: 'GET',
+                headers: getAuthHeaders(),
+                cache: 'no-store'
+            });
+            if (!response.ok) throw new Error(`Status: ${response.status}`);
+            const dados = await response.json();
+            let consumidores = [];
+            if (Array.isArray(dados)) consumidores = dados;
+            else if (dados && Array.isArray(dados.content)) consumidores = dados.content;
+            else if (dados && Array.isArray(dados.data)) consumidores = dados.data;
+            consumidoresCache = consumidores.filter(c => c.status === 'ATIVO');
+            renderConsumidorOptions(consumidoresCache);
+        } catch (error) {
+            console.error('Erro ao carregar consumidores:', error);
+            consumidorOptionsList.innerHTML = `
+                <li class="no-results">
+                    <i class="fas fa-exclamation-circle" style="margin-right:0.4rem;"></i>
+                    Erro ao carregar consumidores.
+                </li>`;
+        }
+    };
+
+    const renderConsumidorOptions = (consumidores, searchTerm = '') => {
+        consumidorOptionsList.innerHTML = '';
+        if (consumidores.length === 0) {
+            const msg = searchTerm
+                ? `Nenhum consumidor encontrado para "${searchTerm}"`
+                : 'Nenhum consumidor cadastrado.';
+            consumidorOptionsList.innerHTML = `<li class="no-results">${msg}</li>`;
+            return;
+        }
+        consumidores.forEach(c => {
+            const li = document.createElement('li');
+            li.dataset.id = c.idConsumidor;
+            if (selectedConsumidorId === c.idConsumidor) li.classList.add('selected');
+            li.innerHTML = `
+                <div class="option-avatar">${getInitials(c.nome)}</div>
+                <div class="option-info">
+                    <span class="option-name">${c.nome || 'Sem nome'}</span>
+                    <span class="option-detail">${c.email || c.cpf_cnpj || '-'}</span>
+                </div>
+                <span class="option-id">#${c.idConsumidor}</span>
+            `;
+            li.addEventListener('click', () => selecionarConsumidor(c));
+            consumidorOptionsList.appendChild(li);
+        });
+    };
+
+    const selecionarConsumidor = (consumidor) => {
+        selectedConsumidorId = consumidor.idConsumidor;
+        idConsumidorHidden.value = consumidor.idConsumidor;
+        consumidorTrigger.innerHTML = `
+            <div class="selected-consumer-chip">
+                <div class="option-avatar">${getInitials(consumidor.nome)}</div>
+                <span class="chip-name">${consumidor.nome || 'Sem nome'}</span>
+                <span class="chip-id">#${consumidor.idConsumidor}</span>
+            </div>
+            <i class="fas fa-chevron-down select-search-arrow"></i>
+        `;
+        consumidorOptionsList.querySelectorAll('li').forEach(li => {
+            li.classList.toggle('selected', parseInt(li.dataset.id) === consumidor.idConsumidor);
+        });
+        fecharConsumidorDropdown();
+    };
+
+    const resetConsumidorSelect = () => {
+        selectedConsumidorId = null;
+        idConsumidorHidden.value = '';
+        consumidorTrigger.innerHTML = `
+            <span class="select-search-value placeholder">Selecione um consumidor...</span>
+            <i class="fas fa-chevron-down select-search-arrow"></i>
+        `;
+        if (consumidorSearchInput) consumidorSearchInput.value = '';
+    };
+
+    const abrirConsumidorDropdown = () => {
+        consumidorWrapper.classList.add('open');
+        setTimeout(() => { if (consumidorSearchInput) consumidorSearchInput.focus(); }, 100);
+    };
+
+    const fecharConsumidorDropdown = () => {
+        consumidorWrapper.classList.remove('open');
+        if (consumidorSearchInput) consumidorSearchInput.value = '';
+        renderConsumidorOptions(consumidoresCache);
+    };
+
+    if (consumidorTrigger) {
+        consumidorTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            if (consumidorWrapper.classList.contains('open')) fecharConsumidorDropdown();
+            else abrirConsumidorDropdown();
+        });
+    }
+
+    if (consumidorSearchInput) {
+        consumidorSearchInput.addEventListener('input', (e) => {
+            const term = e.target.value.toLowerCase().trim();
+            if (!term) { renderConsumidorOptions(consumidoresCache); return; }
+            const filtered = consumidoresCache.filter(c => {
+                const nome = (c.nome || '').toLowerCase();
+                const email = (c.email || '').toLowerCase();
+                const cpf = (c.cpf_cnpj || '').toLowerCase();
+                const id = String(c.idConsumidor);
+                return nome.includes(term) || email.includes(term) || cpf.includes(term) || id.includes(term);
+            });
+            renderConsumidorOptions(filtered, e.target.value);
+        });
+        consumidorSearchInput.addEventListener('keydown', (e) => e.stopPropagation());
+    }
+
+    document.addEventListener('click', (e) => {
+        if (consumidorWrapper && !consumidorWrapper.contains(e.target)) fecharConsumidorDropdown();
+    });
+
+    // =============================================
     // 2. UTILIDADES
     // =============================================
 
     const showToast = (message, type = 'info') => {
         const icons = {
             success: 'fa-check-circle',
-            error:   'fa-times-circle',
+            error: 'fa-times-circle',
             warning: 'fa-exclamation-triangle',
-            info:    'fa-info-circle'
+            info: 'fa-info-circle'
         };
         const toast = document.createElement('div');
         toast.className = `toast toast-${type}`;
@@ -168,7 +519,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     const showConfirm = (title, message) => {
         return new Promise((resolve) => {
-            confirmTitle.textContent   = title;
+            confirmTitle.textContent = title;
             confirmMessage.textContent = message;
             confirmOverlay.classList.add('active');
 
@@ -178,7 +529,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 confirmOkBtn.removeEventListener('click', onConfirm);
                 resolve(result);
             };
-            const onCancel  = () => cleanup(false);
+            const onCancel = () => cleanup(false);
             const onConfirm = () => cleanup(true);
 
             confirmCancelBtn.addEventListener('click', onCancel);
@@ -189,11 +540,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // ✅ Mapeia statusPedido para classe CSS
     const getStatusClass = (status) => {
         switch ((status || '').toLowerCase()) {
-            case 'entregue':     return 'status-entregue';
+            case 'entregue': return 'status-entregue';
             case 'em andamento': return 'status-andamento';
-            case 'pendente':     return 'status-pendente';
-            case 'cancelado':    return 'status-cancelado';
-            default:             return 'status-pendente';
+            case 'pendente': return 'status-pendente';
+            case 'cancelado': return 'status-cancelado';
+            default: return 'status-pendente';
         }
     };
 
@@ -216,6 +567,8 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('vendaFormModalTitle').innerHTML =
             '<i class="fas fa-plus-circle"></i> Nova Venda';
         submitVendaBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Venda';
+        resetConsumidorSelect();
+        fecharConsumidorDropdown();
         // Reseta itens para 1 vazio
         limparItensContainer();
         adicionarItemVazio();
@@ -231,6 +584,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('vendaFormModalTitle').innerHTML =
             '<i class="fas fa-plus-circle"></i> Nova Venda';
         submitVendaBtn.innerHTML = '<i class="fas fa-save"></i> Salvar Venda';
+        resetConsumidorSelect();
+        carregarConsumidoresSelect();
+        carregarProdutosSelect();
         // Reseta itens para 1 vazio
         limparItensContainer();
         adicionarItemVazio();
@@ -246,12 +602,31 @@ document.addEventListener('DOMContentLoaded', () => {
         submitVendaBtn.innerHTML = '<i class="fas fa-save"></i> Atualizar Venda';
 
         // ✅ Preenche campos com dados atuais da venda
-        document.getElementById('idConsumidor').value   = venda.consumidor?.id  || '';
-        document.getElementById('formaPagamento').value = venda.formaPagamento   || '';
-        document.getElementById('statusPedido').value   = venda.statusPedido     || 'Em Andamento';
-        document.getElementById('desconto').value       = venda.desconto         || 0;
-        document.getElementById('prazoTroca').value     = venda.prazoTroca       || 30;
-        document.getElementById('prazoDevolucao').value = venda.prazoDevolucao   || 7;
+        document.getElementById('formaPagamento').value = venda.formaPagamento || '';
+        document.getElementById('statusPedido').value = venda.statusPedido || 'Em Andamento';
+        document.getElementById('desconto').value = venda.desconto || 0;
+        document.getElementById('prazoTroca').value = venda.prazoTroca || 30;
+        document.getElementById('prazoDevolucao').value = venda.prazoDevolucao || 7;
+
+        // ✅ Preenche consumidor no select
+        const consumidor = venda.consumidor || {};
+        const cId = consumidor.id || consumidor.idConsumidor || '';
+        const cNome = consumidor.nome || 'Consumidor';
+        if (cId) {
+            selectedConsumidorId = parseInt(cId);
+            idConsumidorHidden.value = cId;
+            consumidorTrigger.innerHTML = `
+                <div class="selected-consumer-chip">
+                    <div class="option-avatar">${getInitials(cNome)}</div>
+                    <span class="chip-name">${cNome}</span>
+                    <span class="chip-id">#${cId}</span>
+                </div>
+                <i class="fas fa-chevron-down select-search-arrow"></i>
+            `;
+        } else {
+            resetConsumidorSelect();
+        }
+        carregarConsumidoresSelect();
 
         // Reconstrói itens nos campos estruturados a partir dos itens retornados pela API
         // GET /{id} retorna: itens[].produto.id, itens[].quantidade, itens[].detalhes, itens[].precoVendido
@@ -262,9 +637,9 @@ document.addEventListener('DOMContentLoaded', () => {
         } else {
             itensData.forEach(item => {
                 const row = criarItemRow({
-                    idProduto:    item.produto?.id  || item.produto?.idProduto || '',
-                    quantidade:   item.quantidade   || 1,
-                    detalhe:      item.detalhes     || '',
+                    idProduto: item.produto?.id || item.produto?.idProduto || '',
+                    quantidade: item.quantidade || 1,
+                    detalhe: item.detalhes || '',
                     valorVendido: item.precoVendido || 0
                 });
                 itensContainer.appendChild(row);
@@ -292,19 +667,19 @@ document.addEventListener('DOMContentLoaded', () => {
     const preencherDetalhes = (venda) => {
         vendaDetalheAtual = venda;
 
-        document.getElementById('detalheIdVenda').textContent  = `#${venda.idVenda}`;
-        document.getElementById('detalheSerial').textContent   = venda.serial ? `— ${venda.serial}` : '';
+        document.getElementById('detalheIdVenda').textContent = `#${venda.idVenda}`;
+        document.getElementById('detalheSerial').textContent = venda.serial ? `— ${venda.serial}` : '';
 
         // Dados da venda
-        document.getElementById('detalhePrecoTotal').textContent    = formatMoeda(venda.precoTotal);
-        document.getElementById('detalheDesconto').textContent      = formatMoeda(venda.desconto);
+        document.getElementById('detalhePrecoTotal').textContent = formatMoeda(venda.precoTotal);
+        document.getElementById('detalheDesconto').textContent = formatMoeda(venda.desconto);
         document.getElementById('detalheFormaPagamento').textContent = venda.formaPagamento || '-';
-        document.getElementById('detalhePrazoTroca').textContent    = venda.prazoTroca
+        document.getElementById('detalhePrazoTroca').textContent = venda.prazoTroca
             ? `${venda.prazoTroca} dias` : '-';
         document.getElementById('detalhePrazoDevolucao').textContent = venda.prazoDevolucao
             ? `${venda.prazoDevolucao} dias` : '-';
-        document.getElementById('detalheDataCriacao').textContent   = venda.dataCriacao  || '-';
-        document.getElementById('detalheDataEntrega').textContent   = venda.dataEntrega  || 'Não entregue';
+        document.getElementById('detalheDataCriacao').textContent = venda.dataCriacao || '-';
+        document.getElementById('detalheDataEntrega').textContent = venda.dataEntrega || 'Não entregue';
 
         // Status com badge
         const statusClass = getStatusClass(venda.statusPedido);
@@ -313,14 +688,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Consumidor
         const c = venda.consumidor || {};
-        document.getElementById('detalheConsumidorNome').textContent    = c.nome     || '-';
-        document.getElementById('detalheConsumidorEmail').textContent   = c.email    || '-';
-        document.getElementById('detalheConsumidorCelular').textContent = c.celular  || '-';
+        document.getElementById('detalheConsumidorNome').textContent = c.nome || '-';
+        document.getElementById('detalheConsumidorEmail').textContent = c.email || '-';
+        document.getElementById('detalheConsumidorCelular').textContent = c.celular || '-';
         document.getElementById('detalheConsumidorEndereco').textContent = c.endereco || '-';
 
         // Loja
         const l = venda.loja || {};
-        document.getElementById('detalheLojaNome').textContent  = l.nome  || '-';
+        document.getElementById('detalheLojaNome').textContent = l.nome || '-';
         document.getElementById('detalheLojaEmail').textContent = l.email || '-';
 
         // ✅ Itens — campos: produto.descricao, quantidade, precoOriginal,
@@ -333,9 +708,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 '<tr><td colspan="6" style="text-align:center; color:var(--text-muted);">Nenhum item.</td></tr>';
         } else {
             venda.itens.forEach(item => {
-                const variacao     = parseFloat(item.percentualVariacao || 0);
+                const variacao = parseFloat(item.percentualVariacao || 0);
                 const variacaoClass = variacao >= 0 ? 'variacao-positiva' : 'variacao-negativa';
-                const variacaoStr  = `${variacao >= 0 ? '+' : ''}${variacao.toFixed(2)}%`;
+                const variacaoStr = `${variacao >= 0 ? '+' : ''}${variacao.toFixed(2)}%`;
                 const tr = document.createElement('tr');
                 tr.innerHTML = `
                     <td>${item.produto?.descricao || `ID ${item.produto?.id}` || '-'}</td>
@@ -353,9 +728,9 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Eventos de fechar modais
-    if (openModalBtn)       openModalBtn.addEventListener('click', abrirVendaFormModalNovo);
-    if (closeVendaFormBtn)  closeVendaFormBtn.addEventListener('click', fecharVendaFormModal);
-    if (closeDetalhesBtn)   closeDetalhesBtn.addEventListener('click', fecharDetalhesModal);
+    if (openModalBtn) openModalBtn.addEventListener('click', abrirVendaFormModalNovo);
+    if (closeVendaFormBtn) closeVendaFormBtn.addEventListener('click', fecharVendaFormModal);
+    if (closeDetalhesBtn) closeDetalhesBtn.addEventListener('click', fecharDetalhesModal);
 
     if (vendaFormModal) {
         vendaFormModal.addEventListener('click', (e) => {
@@ -369,8 +744,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
     document.addEventListener('keydown', (e) => {
         if (e.key === 'Escape') {
-            if (vendaFormModal.classList.contains('active'))  fecharVendaFormModal();
-            if (detalhesModal.classList.contains('active'))   fecharDetalhesModal();
+            if (vendaFormModal.classList.contains('active')) fecharVendaFormModal();
+            if (detalhesModal.classList.contains('active')) fecharDetalhesModal();
         }
     });
 
@@ -380,23 +755,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const atualizarKpis = (vendas) => {
         if (!vendas.length) {
             statReceitaTotal.textContent = 'R$ 0,00';
-            statEmAndamento.textContent  = '0';
-            statTicketMedio.textContent  = 'R$ 0,00';
-            statEntregues.textContent    = '0';
+            statEmAndamento.textContent = '0';
+            statTicketMedio.textContent = 'R$ 0,00';
+            statEntregues.textContent = '0';
             return;
         }
 
-        const somaTotal  = vendas.reduce((acc, v) => acc + parseFloat(v.precoTotal || 0), 0);
+        const somaTotal = vendas.reduce((acc, v) => acc + parseFloat(v.precoTotal || 0), 0);
         const emAndamento = vendas.filter(v =>
             (v.statusPedido || '').toLowerCase() === 'em andamento').length;
-        const entregues  = vendas.filter(v =>
+        const entregues = vendas.filter(v =>
             (v.statusPedido || '').toLowerCase() === 'entregue').length;
         const ticketMedio = somaTotal / vendas.length;
 
         statReceitaTotal.textContent = formatMoeda(somaTotal);
-        statEmAndamento.textContent  = emAndamento;
-        statTicketMedio.textContent  = formatMoeda(ticketMedio);
-        statEntregues.textContent    = entregues;
+        statEmAndamento.textContent = emAndamento;
+        statTicketMedio.textContent = formatMoeda(ticketMedio);
+        statEntregues.textContent = entregues;
     };
 
     // =============================================
@@ -474,7 +849,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <td>${venda.nomeConsumidor || '-'}</td>
                     <td>${formatMoeda(venda.precoTotal)}</td>
                     <td>${venda.formaPagamento || '-'}</td>
-                    <td>${venda.dataCriacao     || '-'}</td>
+                    <td>${venda.dataCriacao || '-'}</td>
                     <td>
                         <span class="status-badge ${statusClass}">
                             ${venda.statusPedido || '-'}
@@ -547,10 +922,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (vendaMessage) {
                 vendaMessage.textContent = 'Salvando...';
-                vendaMessage.className   = 'form-message';
+                vendaMessage.className = 'form-message';
             }
             submitVendaBtn.disabled = true;
-            const originalBtnText   = submitVendaBtn.innerHTML;
+            const originalBtnText = submitVendaBtn.innerHTML;
             submitVendaBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Salvando...';
 
             // ✅ Coleta itens dos campos estruturados (JSON gerado automaticamente)
@@ -558,25 +933,25 @@ document.addEventListener('DOMContentLoaded', () => {
             if (itensVenda.length === 0) {
                 if (vendaMessage) {
                     vendaMessage.textContent = 'ERRO: Preencha pelo menos 1 item com todos os campos obrigatórios.';
-                    vendaMessage.className   = 'form-message error';
+                    vendaMessage.className = 'form-message error';
                 }
-                submitVendaBtn.disabled  = false;
+                submitVendaBtn.disabled = false;
                 submitVendaBtn.innerHTML = originalBtnText;
                 return;
             }
 
             // ✅ Payload exato conforme documentação do POST/PUT
             const payload = {
-                desconto:        parseFloat(document.getElementById('desconto').value)        || 0,
-                idConsumidor:    parseInt(document.getElementById('idConsumidor').value),
-                prazoTroca:      parseInt(document.getElementById('prazoTroca').value)         || 30,
-                prazoDevolucao: parseInt(document.getElementById('prazoDevolucao').value)     || 7,
+                desconto: parseFloat(document.getElementById('desconto').value) || 0,
+                idConsumidor: parseInt(document.getElementById('idConsumidor').value),
+                prazoTroca: parseInt(document.getElementById('prazoTroca').value) || 30,
+                prazoDevolucao: parseInt(document.getElementById('prazoDevolucao').value) || 7,
                 formaPagamento: document.getElementById('formaPagamento').value.trim(),
-                statusPedido:    document.getElementById('statusPedido').value,
-                itensVenda:      itensVenda
+                statusPedido: document.getElementById('statusPedido').value,
+                itensVenda: itensVenda
             };
 
-            const url    = editingVendaId ? `${VENDAS_URL}/${editingVendaId}` : VENDAS_URL;
+            const url = editingVendaId ? `${VENDAS_URL}/${editingVendaId}` : VENDAS_URL;
             const method = editingVendaId ? 'PUT' : 'POST';
 
             console.log(`[${method}] ${url}`, payload);
@@ -603,7 +978,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     try {
                         const json = await response.json();
                         detail = json.mensagem || json.message || '';
-                    } catch (_) {}
+                    } catch (_) { }
                     throw new Error(
                         detail ||
                         (editingVendaId
@@ -614,7 +989,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (response.status === 422) {
                     let json = {};
-                    try { json = await response.json(); } catch (_) {}
+                    try { json = await response.json(); } catch (_) { }
                     const msg = json.mensagem || json.message || JSON.stringify(json);
                     throw new Error(`Erro de validação: ${msg}`);
                 }
@@ -625,18 +1000,18 @@ document.addEventListener('DOMContentLoaded', () => {
                         const json = await response.json();
                         erroText = json.mensagem || json.message || JSON.stringify(json);
                     } catch (_) {
-                        try { erroText = await response.text(); } catch (_) {}
+                        try { erroText = await response.text(); } catch (_) { }
                     }
                     throw new Error(erroText || `Erro ao salvar venda. Status: ${response.status}`);
                 }
 
                 // ✅ Sucesso: 201 Created (POST) ou 200 OK (PUT)
                 const result = await response.json();
-                const verb   = editingVendaId ? 'atualizada' : 'criada';
+                const verb = editingVendaId ? 'atualizada' : 'criada';
 
                 if (vendaMessage) {
                     vendaMessage.textContent = `Venda #${result.idVenda} ${verb} com sucesso!`;
-                    vendaMessage.className   = 'form-message success';
+                    vendaMessage.className = 'form-message success';
                 }
 
                 showToast(`Venda #${result.idVenda} ${verb} com sucesso!`, 'success');
@@ -650,11 +1025,11 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Erro ao salvar venda:', error);
                 if (vendaMessage) {
                     vendaMessage.textContent = `Erro: ${error.message}`;
-                    vendaMessage.className   = 'form-message error';
+                    vendaMessage.className = 'form-message error';
                 }
                 showToast(`Erro: ${error.message}`, 'error');
             } finally {
-                submitVendaBtn.disabled  = false;
+                submitVendaBtn.disabled = false;
                 submitVendaBtn.innerHTML = originalBtnText;
             }
         });
@@ -688,18 +1063,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 await carregarVendas();
             } else {
                 let erroText = '';
-                try { 
+                try {
                     const json = await response.json();
-                    erroText = json.mensagem || json.message; 
+                    erroText = json.mensagem || json.message;
                 } catch (_) {
-                    try { erroText = await response.text(); } catch (__) {}
+                    try { erroText = await response.text(); } catch (__) { }
                 }
 
                 switch (response.status) {
                     case 401: throw new Error('Token inválido. Faça login novamente.');
                     case 403: throw new Error('Acesso negado para desativar esta venda.');
                     case 404: throw new Error(`Venda #${id} não encontrada.`);
-                    default:  throw new Error(erroText || `Erro ao desativar. Status: ${response.status}`);
+                    default: throw new Error(erroText || `Erro ao desativar. Status: ${response.status}`);
                 }
             }
         } catch (error) {
@@ -747,7 +1122,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(error.message, 'error');
             }
 
-        // --- EDITAR: GET /vendas/{id} para preencher form, depois PUT ---
+            // --- EDITAR: GET /vendas/{id} para preencher form, depois PUT ---
         } else if (button.classList.contains('btn-edit')) {
             try {
                 const venda = await buscarVendaPorId(id);
@@ -757,7 +1132,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast(error.message, 'error');
             }
 
-        // --- DESATIVAR: PATCH /vendas com [id] ---
+            // --- DESATIVAR: PATCH /vendas com [id] ---
         } else if (button.classList.contains('btn-deactivate')) {
             await desativarVenda(id);
         }

@@ -14,7 +14,7 @@ Campos e modais espelham exatamente a documentação da API /logvert/vendas
             <img src="/assets/logosemfundo.png" alt="Logo LogVert" class="sidebar-logo">
         </div>
         <ul class="sidebar-menu">
-            <li><a class="sidebar-link" href="/menu.lojista">
+            <li><a class="sidebar-link" href="/pages/menu.lojista/menuLojista.html">
                 <i class="fa-solid fa-house"></i><span>Início</span></a></li>
             <li><a class="sidebar-link" href="/produtos">
                 <i class="fa-solid fa-box"></i><span>Produto</span></a></li>
@@ -22,9 +22,9 @@ Campos e modais espelham exatamente a documentação da API /logvert/vendas
                 <i class="fa-solid fa-truck"></i><span>Venda</span></a></li>
             <li><a class="sidebar-link" href="/consumidores">
                 <i class="fa-solid fa-users"></i><span>Consumidores</span></a></li>
-            <li><a class="sidebar-link" href="/solicitacoes">
+            <li><a class="sidebar-link" href="/pages/devolucoes/devolucoes.html">
                 <i class="fa-solid fa-arrow-rotate-left"></i><span>Trocas e Devoluções</span></a></li>
-            <li><a class="sidebar-link" href="/FAQ">
+            <li><a class="sidebar-link" href="/pages/FAQ/FAQ.html">
                 <i class="fa-solid fa-circle-question"></i><span>Central de Ajuda</span></a></li>
             <li><a class="sidebar-link" href="/login">
                 <i class="fa-solid fa-arrow-right-from-bracket"></i><span>Sair</span></a></li>
@@ -218,11 +218,29 @@ Campos e modais espelham exatamente a documentação da API /logvert/vendas
                 <!-- idConsumidor — obrigatório no POST -->
                 <div class="form-group">
                     <label for="idConsumidor">
-                        ID do Consumidor <span class="required">*</span>
+                        Consumidor <span class="required">*</span>
                     </label>
-                    <input type="number" id="idConsumidor" min="1"
-                           placeholder="Ex: 1" required>
-                    <small>Informe o ID do consumidor cadastrado na plataforma.</small>
+                    <div class="select-search-wrapper" id="consumidorSelectWrapper">
+                        <div class="select-search-trigger" id="consumidorTrigger" tabindex="0">
+                            <span class="select-search-value placeholder" id="consumidorSelectedText">Selecione um consumidor...</span>
+                            <i class="fas fa-chevron-down select-search-arrow"></i>
+                        </div>
+                        <div class="select-search-dropdown" id="consumidorDropdown">
+                            <div class="select-search-input-wrapper">
+                                <i class="fas fa-search"></i>
+                                <input type="text" id="consumidorSearchInput"
+                                       placeholder="Buscar por nome, email ou CPF..."
+                                       autocomplete="off">
+                            </div>
+                            <ul class="select-search-options" id="consumidorOptionsList">
+                                <li class="select-search-loading">
+                                    <i class="fas fa-spinner fa-spin"></i> Carregando consumidores...
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <input type="hidden" id="idConsumidor" required>
+                    <small>Selecione o consumidor para registrar a venda.</small>
                 </div>
 
                 <div class="form-row">
