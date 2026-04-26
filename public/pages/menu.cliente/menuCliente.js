@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', () => {
+﻿document.addEventListener('DOMContentLoaded', () => {
 
     // =============================================
     // CONFIGURAÇÃO — Rota base sempre /logvert
@@ -89,7 +89,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!grid) return;
 
         try {
-            const resp = await fetch(`${API}/solicitacoes?page=0&size=50&sort=dataSolicitacao,desc`, { headers: jsonHeaders() });
+            const resp = await fetch(`${API}/solicitacoes/me?page=0&size=50&sort=dataSolicitacao,desc`, { headers: jsonHeaders() });
 
             if (resp.status === 401) {
                 showFeedback('Sessão expirada. Faça login novamente.', 'error');
@@ -198,8 +198,75 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeEditBtn = document.getElementById('closeEditModal');
     const formEditar = document.getElementById('form-editar-solicitacao');
     const editErrorMsg = document.getElementById('edit-error-msg');
+    const editItemSelect = document.getElementById('edit-idItem');
+    const editItemInfo = document.getElementById('edit-item-info');
+    let editItensCache = [];
+    let editItensLoaded = false;
 
-    function openEditModal(id) {
+    // Carrega itens da venda do consumidor para o dropdown de edição
+    async function carregarItensEdicao() {
+        if (editItensLoaded) return;
+        try {
+            let resp = await fetch(`${API}/vendas/me`, { headers: jsonHeaders() });
+            if (!resp.ok && resp.status !== 401) {
+                resp = await fetch(`${API}/vendas?page=0&size=100&sort=dataCriacao,desc`, { headers: jsonHeaders() });
+            }
+            if (!resp.ok) return;
+
+            const data = await resp.json();
+            let vendas = [];
+            if (Array.isArray(data)) vendas = data;
+            else if (data.content) vendas = data.content;
+            else if (data.idVenda || data.id) vendas = [data];
+
+            editItensCache = [];
+            vendas.forEach(v => {
+                (v.itens || []).forEach(item => {
+                    editItensCache.push({
+                        idItem: item.id || item.idItem,
+                        idVenda: v.idVenda || v.id,
+                        serial: v.serial || `Venda #${v.idVenda || v.id}`,
+                        produto: item.produto?.descricao || item.descricao || `Produto #${item.produto?.id || item.idProduto || '?'}`,
+                        quantidade: item.quantidade || 1,
+                        precoVendido: item.precoVendido || 0
+                    });
+                });
+            });
+            editItensLoaded = true;
+        } catch (err) {
+            console.error('Erro ao carregar itens para edição:', err);
+        }
+    }
+
+    // Popula o dropdown com os itens carregados
+    function popularDropdownEdicao(selectedId) {
+        if (!editItemSelect) return;
+        editItemSelect.innerHTML = '<option value="">Selecione um item...</option>';
+        editItensCache.forEach(it => {
+            const opt = document.createElement('option');
+            opt.value = it.idItem;
+            opt.textContent = `${it.produto} — ${it.serial} (Qtd: ${it.quantidade})`;
+            if (String(it.idItem) === String(selectedId)) opt.selected = true;
+            editItemSelect.appendChild(opt);
+        });
+    }
+
+    // Mostra info do item selecionado no dropdown de edição
+    if (editItemSelect) {
+        editItemSelect.addEventListener('change', () => {
+            const id = editItemSelect.value;
+            if (!id || !editItemInfo) { if (editItemInfo) editItemInfo.style.display = 'none'; return; }
+            const item = editItensCache.find(i => String(i.idItem) === id);
+            if (item) {
+                document.getElementById('edit-info-produto').textContent = item.produto;
+                document.getElementById('edit-info-venda').textContent = item.serial;
+                document.getElementById('edit-info-quantidade').textContent = item.quantidade;
+                editItemInfo.style.display = 'block';
+            }
+        });
+    }
+
+    async function openEditModal(id) {
         const sol = solicitacoesData.find(s => String(s.id) === String(id));
         if (!sol) return;
 
@@ -221,9 +288,13 @@ document.addEventListener('DOMContentLoaded', () => {
         if (predef.includes(sol.motivo)) { motivoSel.value = sol.motivo; detalhes.value = ''; }
         else { motivoSel.value = 'Outro'; detalhes.value = sol.motivo || ''; }
 
-        document.getElementById('edit-idItem').value = '';
+        // Carrega itens e popula dropdown
+        await carregarItensEdicao();
+        popularDropdownEdicao('');
+
         document.getElementById('edit-quantidade').value = '';
         document.getElementById('edit-anexos').value = '';
+        if (editItemInfo) editItemInfo.style.display = 'none';
         if (editErrorMsg) editErrorMsg.style.display = 'none';
 
         if (editModal) editModal.classList.add('active');
@@ -246,7 +317,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const motivo = motivoVal === 'Outro' ? detalhesVal : motivoVal;
 
-            if (!idItem || idItem < 1) { showEditError('Informe o ID do item.'); return; }
+            if (!idItem || idItem < 1) { showEditError('Selecione o item da compra.'); return; }
             if (!quantidade || quantidade < 1) { showEditError('Informe a quantidade.'); return; }
             if (!tipo) { showEditError('Selecione o tipo.'); return; }
             if (!motivo) { showEditError('Selecione ou descreva o motivo.'); return; }
@@ -345,3 +416,5 @@ document.addEventListener('DOMContentLoaded', () => {
     // =============================================
     if (grid) loadMinhasSolicitacoes();
 });
+
+
