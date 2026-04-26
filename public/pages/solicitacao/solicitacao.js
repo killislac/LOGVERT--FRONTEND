@@ -167,6 +167,7 @@ document.addEventListener('DOMContentLoaded', () => {
             const solicitacao = { idItem, quantidade, tipo, motivo };
             fd.append('solicitacao', new Blob([JSON.stringify(solicitacao)], { type: 'application/json' }));
 
+            // Anexos são opcionais — só envia se houver arquivos selecionados
             if (anexosInput && anexosInput.files.length > 0) {
                 for (let i = 0; i < anexosInput.files.length; i++) {
                     fd.append('anexos', anexosInput.files[i]);
@@ -190,15 +191,36 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Redireciona para Minhas Solicitações
                     setTimeout(() => { window.location.href = '/pages/menu.cliente/menuCliente.html'; }, 2500);
 
-                } else if (resp.status === 400) { showError('Tipo de arquivo inválido. Envie apenas imagens ou vídeos.');
-                } else if (resp.status === 401) { showError('Sessão expirada.'); setTimeout(() => { window.location.href = '/pages/login/login.html'; }, 2000);
-                } else if (resp.status === 404) { showError('Venda ou item não encontrado.');
+                } else if (resp.status === 400) {
+                    showError('Tipo de arquivo inválido. Envie apenas imagens ou vídeos.');
+                } else if (resp.status === 401) {
+                    showError('Sessão expirada.');
+                    setTimeout(() => { window.location.href = '/pages/login/login.html'; }, 2000);
+                } else if (resp.status === 404) {
+                    showError('Venda ou item não encontrado.');
                 } else if (resp.status === 409) {
                     let msg = 'Não foi possível criar a solicitação.';
-                    try { const t = await resp.text(); if (t) msg = t; } catch(x){}
+                    try {
+                        const body = await resp.json();
+                        if (body.message) msg = body.message;
+                        else if (body.erro) msg = body.erro;
+                    } catch (x) {
+                        try { const t = await resp.text(); if (t) msg = t; } catch (y) { }
+                    }
                     showError(msg);
-                } else if (resp.status === 422) { showError('Erro de validação. Verifique os campos.');
-                } else { showError('Erro inesperado. Tente novamente.'); }
+                } else if (resp.status === 422) {
+                    let msg = 'Erro de validação. Verifique os campos.';
+                    try {
+                        const body = await resp.json();
+                        if (body.errors) {
+                            const msgs = Object.values(body.errors).flat();
+                            if (msgs.length > 0) msg = msgs.join('; ');
+                        } else if (body.message) msg = body.message;
+                    } catch (x) { }
+                    showError(msg);
+                } else {
+                    showError('Erro inesperado. Tente novamente.');
+                }
 
             } catch (err) {
                 console.error('Erro ao criar solicitação:', err);
