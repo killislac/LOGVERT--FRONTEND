@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -9,6 +10,7 @@
     <link rel="stylesheet" href="/pages/vendas/venda.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
 </head>
+
 <body>
 
     <div id="dashboard-particles"></div>
@@ -22,19 +24,19 @@
             </div>
             <ul class="sidebar-menu">
                 <li><a class="sidebar-link" href="/pages/menu.lojista/menuLojista.html">
-                    <i class="fa-solid fa-house"></i><span>Início</span></a></li>
+                        <i class="fa-solid fa-house"></i><span>Início</span></a></li>
                 <li><a class="sidebar-link" href="/produtos">
-                    <i class="fa-solid fa-box"></i><span>Produto</span></a></li>
+                        <i class="fa-solid fa-box"></i><span>Produto</span></a></li>
                 <li><a class="sidebar-link active" href="/vendas">
-                    <i class="fa-solid fa-truck"></i><span>Venda</span></a></li>
+                        <i class="fa-solid fa-truck"></i><span>Venda</span></a></li>
                 <li><a class="sidebar-link" href="/consumidores">
-                    <i class="fa-solid fa-users"></i><span>Consumidores</span></a></li>
+                        <i class="fa-solid fa-users"></i><span>Consumidores</span></a></li>
                 <li><a class="sidebar-link" href="/pages/devolucoes/devolucoes.html">
-                    <i class="fa-solid fa-arrow-rotate-left"></i><span>Trocas e Devoluções</span></a></li>
+                        <i class="fa-solid fa-arrow-rotate-left"></i><span>Trocas e Devoluções</span></a></li>
                 <li><a class="sidebar-link" href="/pages/FAQ/FAQ.html">
-                    <i class="fa-solid fa-circle-question"></i><span>Central de Ajuda</span></a></li>
+                        <i class="fa-solid fa-star"></i><span>Feedbacks</span></a></li>
                 <li><a class="sidebar-link" href="/pages/login/login.html">
-                    <i class="fa-solid fa-arrow-right-from-bracket"></i><span>Sair</span></a></li>
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i><span>Sair</span></a></li>
             </ul>
             <div class="sidebar-toggle-wrapper">
                 <button class="sidebar-toggle" id="sidebarToggle" title="Minimizar menu">
@@ -98,11 +100,12 @@
                                 <div class="dropdown-menu" id="accountDropdown">
                                     <ul>
                                         <li><a href="/pages/configuracao/configuracao.html">
-                                            <i class="fa-solid fa-cog"></i> Configurações da Conta</a></li>
+                                                <i class="fa-solid fa-cog"></i> Configurações da Conta</a></li>
                                         <li><a href="/assinatura">
-                                            <i class="fa-solid fa-file-invoice-dollar"></i> Minha Assinatura</a></li>
+                                                <i class="fa-solid fa-file-invoice-dollar"></i> Minha Assinatura</a>
+                                        </li>
                                         <li><a href="/login">
-                                            <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair</a></li>
+                                                <i class="fa-solid fa-arrow-right-from-bracket"></i> Sair</a></li>
                                     </ul>
                                 </div>
                             </div>
@@ -181,22 +184,50 @@
                         <tbody id="vendasTableBody">
                             <!-- Skeleton loading -->
                             <tr class="skeleton-row">
-                                <td><div class="skeleton-bar short"></div></td>
-                                <td><div class="skeleton-bar"></div></td>
-                                <td><div class="skeleton-bar medium"></div></td>
-                                <td><div class="skeleton-bar medium"></div></td>
-                                <td><div class="skeleton-bar short"></div></td>
-                                <td><div class="skeleton-bar short"></div></td>
-                                <td><div class="skeleton-bar short"></div></td>
+                                <td>
+                                    <div class="skeleton-bar short"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar medium"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar medium"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar short"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar short"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar short"></div>
+                                </td>
                             </tr>
                             <tr class="skeleton-row">
-                                <td><div class="skeleton-bar short"></div></td>
-                                <td><div class="skeleton-bar"></div></td>
-                                <td><div class="skeleton-bar medium"></div></td>
-                                <td><div class="skeleton-bar medium"></div></td>
-                                <td><div class="skeleton-bar short"></div></td>
-                                <td><div class="skeleton-bar short"></div></td>
-                                <td><div class="skeleton-bar short"></div></td>
+                                <td>
+                                    <div class="skeleton-bar short"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar medium"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar medium"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar short"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar short"></div>
+                                </td>
+                                <td>
+                                    <div class="skeleton-bar short"></div>
+                                </td>
                             </tr>
                         </tbody>
                     </table>
@@ -228,15 +259,15 @@
                         </label>
                         <div class="select-search-wrapper" id="consumidorSelectWrapper">
                             <div class="select-search-trigger" id="consumidorTrigger" tabindex="0">
-                                <span class="select-search-value" id="consumidorSelectedText">Selecione um consumidor...</span>
+                                <span class="select-search-value" id="consumidorSelectedText">Selecione um
+                                    consumidor...</span>
                                 <i class="fas fa-chevron-down select-search-arrow"></i>
                             </div>
                             <div class="select-search-dropdown" id="consumidorDropdown">
                                 <div class="select-search-input-wrapper">
                                     <i class="fas fa-search"></i>
-                                    <input type="text" id="consumidorSearchInput" 
-                                           placeholder="Buscar por nome, email ou CPF..." 
-                                           autocomplete="off">
+                                    <input type="text" id="consumidorSearchInput"
+                                        placeholder="Buscar por nome, email ou CPF..." autocomplete="off">
                                 </div>
                                 <ul class="select-search-options" id="consumidorOptionsList">
                                     <li class="select-search-loading">
@@ -282,23 +313,17 @@
                         <!-- desconto -->
                         <div class="form-group">
                             <label for="desconto">Desconto (R$)</label>
-                            <input type="number" id="desconto"
-                                   step="0.01" min="0" value="0"
-                                   placeholder="Ex: 10.00">
+                            <input type="number" id="desconto" step="0.01" min="0" value="0" placeholder="Ex: 10.00">
                         </div>
                         <!-- prazoTroca -->
                         <div class="form-group">
                             <label for="prazoTroca">Prazo de Troca (dias)</label>
-                            <input type="number" id="prazoTroca"
-                                   min="0" value="30"
-                                   placeholder="Ex: 30">
+                            <input type="number" id="prazoTroca" min="0" value="30" placeholder="Ex: 30">
                         </div>
                         <!-- prazoDevolucao -->
                         <div class="form-group">
                             <label for="prazoDevolucao">Prazo de Devolução (dias)</label>
-                            <input type="number" id="prazoDevolucao"
-                                   min="0" value="7"
-                                   placeholder="Ex: 7">
+                            <input type="number" id="prazoDevolucao" min="0" value="7" placeholder="Ex: 7">
                         </div>
                     </div>
 
@@ -317,15 +342,18 @@
                                 <div class="item-row-fields">
                                     <div class="item-field">
                                         <label>ID Produto <span class="required">*</span></label>
-                                        <input type="number" data-field="idProduto" min="1" placeholder="Ex: 101" required>
+                                        <input type="number" data-field="idProduto" min="1" placeholder="Ex: 101"
+                                            required>
                                     </div>
                                     <div class="item-field">
                                         <label>Quantidade <span class="required">*</span></label>
-                                        <input type="number" data-field="quantidade" min="1" step="1" value="1" placeholder="Ex: 2" required>
+                                        <input type="number" data-field="quantidade" min="1" step="1" value="1"
+                                            placeholder="Ex: 2" required>
                                     </div>
                                     <div class="item-field">
                                         <label>Valor Vendido (R$) <span class="required">*</span></label>
-                                        <input type="number" data-field="valorVendido" min="0" step="0.01" placeholder="Ex: 89.90" required>
+                                        <input type="number" data-field="valorVendido" min="0" step="0.01"
+                                            placeholder="Ex: 89.90" required>
                                     </div>
                                     <div class="item-field">
                                         <label>Detalhe</label>
@@ -508,4 +536,5 @@
     <script src="/pages/menu.lojista/menuLojista.js"></script>
     <script src="/pages/vendas/venda.js"></script>
 </body>
+
 </html>
