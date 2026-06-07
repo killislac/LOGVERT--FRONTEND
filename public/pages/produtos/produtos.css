@@ -136,20 +136,26 @@ tbody tr:hover {
 
 .action-buttons {
     display: flex;
-    gap: 1rem;
-    text-align: right;
+    gap: 0.75rem;
+    align-items: center;
 }
 .btn-icon {
     background: none;
-    border: none;
+    border: 1px solid transparent;
     color: var(--text-muted);
-    font-size: 1.1rem;
+    font-size: 1rem;
     cursor: pointer;
-    transition: color 0.2s;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
-.btn-icon:hover   { color: var(--text-light); }
-.btn-edit:hover   { color: var(--primary-blue); }
-.btn-delete:hover { color: #e53935; }
+.btn-icon:hover   { color: var(--text-light); background: rgba(255,255,255,0.06); }
+.btn-edit:hover   { color: var(--primary-blue); background: rgba(26,115,232,0.1); border-color: rgba(26,115,232,0.2); }
+.btn-delete:hover { color: #e53935; background: rgba(229,57,53,0.1); border-color: rgba(229,57,53,0.2); }
 
 
 /* 4. Modal de Produto */
@@ -206,10 +212,19 @@ tbody tr:hover {
     font-size: 1.8rem;
     cursor: pointer;
     line-height: 1;
-    transition: color 0.2s;
+    padding: 4px 8px;
+    border-radius: 6px;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, transform 0.2s;
+    flex-shrink: 0;
 }
 .close-modal:hover {
-    color: var(--text-light);
+    color: #e53935;
+    transform: rotate(90deg);
 }
 
 .modal-body {
@@ -231,7 +246,8 @@ tbody tr:hover {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: var(--text-muted);
+    color: var(--text-light);
+    font-size: 0.875rem;
 }
 
 .form-group input[type="text"],
@@ -267,9 +283,9 @@ tbody tr:hover {
     padding: 8px;
 }
 .form-group input[type="file"]::file-selector-button {
-    background-color: #4a5568;
-    border: none;
-    color: white;
+    background-color: var(--card-background);
+    border: 1px solid var(--border-color-dark);
+    color: var(--text-light);
     border-radius: 4px;
     padding: 8px 12px;
     margin-right: 1rem;
@@ -277,7 +293,7 @@ tbody tr:hover {
     transition: background-color 0.2s;
 }
 .form-group input[type="file"]::file-selector-button:hover {
-    background-color: #5a677d;
+    background-color: rgba(255,255,255,0.1);
 }
 
 .form-group small {

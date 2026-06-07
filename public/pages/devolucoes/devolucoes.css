@@ -293,9 +293,11 @@ body.sidebar-collapsed .sidebar[data-locked="true"]:hover .sidebar-link span {
 }
 
 .stat-title {
-    font-size: 0.9rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     margin-bottom: 0.25rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
 }
 
 .stat-value {
@@ -365,46 +367,62 @@ tbody tr.row-clickable:hover {
 }
 
 .action-buttons {
-    text-align: right;
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.5rem;
 }
 
 .btn-icon {
     background: none;
-    border: none;
+    border: 1px solid transparent;
     color: var(--text-muted);
-    font-size: 1.1rem;
+    font-size: 1rem;
     cursor: pointer;
-    transition: color 0.2s;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
 }
 
 .btn-icon:hover {
     color: var(--primary-blue);
+    background: rgba(26, 115, 232, 0.1);
+    border-color: rgba(26, 115, 232, 0.2);
 }
 
 /* Badges de Status e Tipo */
 .status-badge {
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 700;
-    color: #000000;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 4px 14px;
+    border-radius: 50px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     white-space: nowrap;
-    text-shadow: none;
 }
 
 .status-badge.status-pending {
-    background-color: var(--status-pending);
-    color: #000000;
+    background: rgba(243, 156, 18, 0.15);
+    color: var(--status-pending);
+    border: 1px solid rgba(243, 156, 18, 0.3);
 }
 
 .status-badge.status-approved {
-    background-color: var(--primary-green);
-    color: #ffffff;
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.3);
 }
 
 .status-badge.status-completed {
-    background-color: #66bb6a;
-    color: #ffffff;
+    background: rgba(74, 222, 128, 0.15);
+    color: #4ade80;
+    border: 1px solid rgba(74, 222, 128, 0.3);
 }
 
 .badge {
@@ -489,6 +507,19 @@ tbody tr.row-clickable:hover {
     font-size: 1.8rem;
     cursor: pointer;
     line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: color 0.2s, transform 0.2s;
+    flex-shrink: 0;
+}
+.close-modal:hover {
+    color: #e53935;
+    transform: rotate(90deg);
 }
 
 .modal-body {
@@ -695,18 +726,21 @@ tbody tr.row-clickable:hover {
 
 /* Status badges adicionais */
 .status-badge.status-transit {
-    background-color: var(--primary-blue);
-    color: #ffffff;
+    background: rgba(26, 115, 232, 0.15);
+    color: #60a5fa;
+    border: 1px solid rgba(26, 115, 232, 0.3);
 }
 
 .status-badge.status-rejected {
-    background-color: #e53935;
-    color: #ffffff;
+    background: rgba(229, 57, 53, 0.15);
+    color: #e53935;
+    border: 1px solid rgba(229, 57, 53, 0.3);
 }
 
 .status-badge.status-cancelled {
-    background-color: #e53935;
-    color: #ffffff;
+    background: rgba(229, 57, 53, 0.15);
+    color: #e53935;
+    border: 1px solid rgba(229, 57, 53, 0.3);
 }
 
 /* Botão secundário */
@@ -723,7 +757,34 @@ tbody tr.row-clickable:hover {
 .btn-secondary:disabled {
     opacity: 0.5;
     cursor: not-allowed;
+    pointer-events: none;
 }
+
+/* Formulário de Atualização (removidos inline styles) */
+.form-label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-light);
+}
+.form-control {
+    width: 100%;
+    padding: 10px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color-dark);
+    background: rgba(0, 0, 0, 0.2);
+    color: var(--text-light);
+    font-size: 0.95rem;
+    font-family: 'Roboto', sans-serif;
+    transition: all 0.2s ease;
+}
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary-blue);
+    box-shadow: 0 0 0 3px rgba(26, 115, 232, 0.3);
+}
+.mb-2 { margin-bottom: 1rem; }
 
 /* Header actions */
 .header-actions {

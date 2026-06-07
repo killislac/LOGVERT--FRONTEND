@@ -822,6 +822,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 vendas = dados.content;
             }
 
+            // ✅ Filtra vendas inativas (soft-deleted via PATCH)
+            vendas = vendas.filter(v => (v.status || '').toUpperCase() !== 'INATIVO');
+
             atualizarKpis(vendas);
             tableBody.innerHTML = '';
 

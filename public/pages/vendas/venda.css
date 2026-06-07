@@ -47,7 +47,7 @@
 }
 
 .stat-title {
-    font-size: 0.82rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     margin-bottom: 0.3rem;
     text-transform: uppercase;
@@ -55,7 +55,7 @@
 }
 
 .stat-value {
-    font-size: 1.45rem;
+    font-size: 1.5rem;
     font-weight: 700;
     color: var(--text-light);
 }
@@ -322,8 +322,15 @@ tbody tr:hover {
     font-size: 1.8rem;
     cursor: pointer;
     line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
     transition: color 0.2s, transform 0.2s;
     flex-shrink: 0;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .close-modal:hover {
@@ -434,6 +441,7 @@ tbody tr:hover {
 .btn-submit-modal:disabled {
     opacity: 0.6;
     cursor: not-allowed;
+    pointer-events: none;
     transform: none;
     box-shadow: none;
 }
@@ -484,7 +492,7 @@ tbody tr:hover {
 }
 
 .detalhe-item span {
-    font-size: 0.72rem;
+    font-size: 0.75rem;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.5px;
@@ -915,7 +923,7 @@ tbody tr:hover {
 }
 
 .item-row-label {
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     font-weight: 600;
     color: var(--primary-blue);
     text-transform: uppercase;
@@ -923,31 +931,37 @@ tbody tr:hover {
 }
 
 .btn-remove-item {
-    width: 28px;
-    height: 28px;
+    width: 32px;
+    height: 32px;
     border: 1px solid rgba(229, 57, 53, 0.3);
     background: rgba(229, 57, 53, 0.08);
     color: #e53935;
     border-radius: 6px;
     cursor: pointer;
-    font-size: 1.1rem;
+    font-size: 1rem;
     display: flex;
     align-items: center;
     justify-content: center;
     transition: all 0.2s ease;
     line-height: 1;
+    flex-shrink: 0;
 }
 
 .btn-remove-item:hover {
     background: rgba(229, 57, 53, 0.2);
     border-color: #e53935;
-    transform: scale(1.1);
+    transform: scale(1.05);
 }
 
 .item-row-fields {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 0.75rem;
+}
+
+/* Produto ocupa linha inteira — seletor precisa de mais espaço */
+.item-field-produto {
+    grid-column: span 2;
 }
 
 .item-field label {

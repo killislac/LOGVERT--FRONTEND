@@ -2,7 +2,8 @@
 <html lang="pt-BR">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Gerencie o catálogo de produtos da sua loja no LogVert — adicione, edite e organize seus produtos.">
     <title>LogVert | Produtos</title>
     <link rel="icon" type="image/png" href="/assets/logosemfundo.png">
     
@@ -134,14 +135,14 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>Adicionar Novo Produto</h2>
-                <button class="close-modal" id="closeModalBtn">&times;</button>
+                <button class="close-modal" id="closeModalBtn" aria-label="Fechar modal">&times;</button>
             </div>
             <div class="modal-body">
-                <form id="addProdutoForm" class="form-container">
+                <form id="addProdutoForm" class="form-container" novalidate>
                     
                     <div class="form-group">
                         <label for="descricao">Descrição do Produto</label>
-                        <input type="text" id="descricao" required>
+                        <input type="text" id="descricao" placeholder="Ex: Camiseta Algodão Azul Tamanho M" required>
                     </div>
                     <div class="form-row">
                         <div class="form-group">

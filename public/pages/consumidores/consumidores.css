@@ -320,6 +320,14 @@ th .row-checkbox {
     font-size: 1.8rem;
     cursor: pointer;
     line-height: 1;
+    padding: 4px 8px;
+    border-radius: 6px;
+    min-width: 36px;
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
     transition: color 0.2s ease, transform 0.2s ease;
 }
 
@@ -351,8 +359,8 @@ th .row-checkbox {
     display: block;
     margin-bottom: 0.5rem;
     font-weight: 500;
-    color: var(--text-muted);
-    font-size: 0.9rem;
+    color: var(--text-light);
+    font-size: 0.875rem;
 }
 
 .form-group label .required {

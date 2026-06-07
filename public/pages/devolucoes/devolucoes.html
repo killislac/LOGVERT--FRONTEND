@@ -4,6 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Acompanhe e gerencie as solicitações de trocas e devoluções dos seus clientes no LogVert.">
     <title>LogVert | Trocas e Devoluções</title>
     <link rel="icon" type="image/png" href="/assets/logosemfundo.png">
 
@@ -155,7 +156,7 @@
         <div class="modal-content large">
             <div class="modal-header">
                 <h2>Detalhes da Solicitação <span class="text-highlight" id="modal-sol-id"></span></h2>
-                <button class="close-modal" id="closeModalBtn">&times;</button>
+                <button class="close-modal" id="closeModalBtn" aria-label="Fechar modal">&times;</button>
             </div>
             <div class="modal-body">
                 <div id="modal-loading" style="text-align:center; padding:2rem; color: var(--text-muted);">
@@ -269,28 +270,23 @@
                             <div id="modal-actions-atualizar" style="display:none;">
                                 <h3 class="mt-2"><i class="fas fa-sync-alt"></i> Atualizar Status</h3>
                                 <form id="form-atualizar-status">
-                                    <div class="data-group" style="margin-bottom: 10px;">
-                                        <label for="status-novo" style="display:block; margin-bottom:5px;"><span>Novo
-                                                Status:</span></label>
-                                        <select id="status-novo" required
-                                            style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-color-dark); background: var(--card-background); color: var(--text-light);">
+                                    <div class="data-group mb-2">
+                                        <label for="status-novo" class="form-label"><span>Novo Status:</span></label>
+                                        <select id="status-novo" class="form-control" required>
                                             <option value="">Selecione...</option>
                                             <option value="Em Trânsito">Em Trânsito</option>
                                             <option value="Concluída">Concluída</option>
                                         </select>
                                     </div>
-                                    <div class="data-group" style="margin-bottom: 10px;">
-                                        <label for="observacao-status"
-                                            style="display:block; margin-bottom:5px;"><span>Observação:</span></label>
-                                        <textarea id="observacao-status" rows="3" required
-                                            style="width:100%; padding:8px; border-radius:6px; border:1px solid var(--border-color-dark); background: var(--card-background); color: var(--text-light);"
+                                    <div class="data-group mb-2">
+                                        <label for="observacao-status" class="form-label"><span>Observação:</span></label>
+                                        <textarea id="observacao-status" rows="3" class="form-control" required
                                             placeholder="Descreva a atualização..."></textarea>
                                     </div>
 
                                     <!-- Novos Produtos (opcional, para trocas concluídas) -->
                                     <div id="novos-produtos-section" style="display:none;">
-                                        <label style="display:block; margin-bottom:5px;"><span>Novos Produtos
-                                                (Troca):</span></label>
+                                        <label class="form-label"><span>Novos Produtos (Troca):</span></label>
                                         <div id="novos-produtos-list"></div>
                                         <button type="button" class="btn btn-secondary" id="btn-add-produto"
                                             style="margin-top:5px;">

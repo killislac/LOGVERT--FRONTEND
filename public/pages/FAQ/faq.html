@@ -81,35 +81,69 @@
                 <!-- Mensagem de feedback -->
                 <div id="feedback-message" class="feedback-msg" style="display:none;"></div>
 
-                <!-- Busca por Feedback ID -->
+                <!-- Seção de Busca com Dropdowns -->
                 <div class="feedback-search-section">
+
+                    <!-- CARD A: Dropdown de Solicitações -->
                     <div class="search-card">
-                        <h3><i class="fas fa-hashtag"></i> Buscar Feedback por ID</h3>
-                        <p>Consulte um feedback específico pelo seu identificador.</p>
-                        <form id="form-busca-id" class="search-form">
-                            <div class="search-input-group">
-                                <input type="number" id="input-feedback-id" placeholder="ID do Feedback" min="1"
-                                    required>
-                                <button type="submit" class="btn btn-primary" id="btn-buscar-id">
-                                    <i class="fas fa-search"></i> Buscar
-                                </button>
+                        <h3><i class="fas fa-clipboard-list"></i> Buscar por Solicitação</h3>
+                        <p>Selecione uma solicitação para ver todos os feedbacks relacionados.</p>
+
+                        <!-- Dropdown pesquisável de solicitações -->
+                        <div class="faq-select-wrapper" id="solicitacaoSelectWrapper">
+                            <div class="faq-select-trigger" id="solicitacaoTrigger" tabindex="0">
+                                <span class="faq-select-placeholder" id="solicitacaoPlaceholder">
+                                    <i class="fas fa-spinner fa-spin" id="solicitacaoLoadingIcon"></i>
+                                    Carregando solicitações...
+                                </span>
+                                <i class="fas fa-chevron-down faq-select-arrow"></i>
                             </div>
-                        </form>
+                            <div class="faq-select-dropdown" id="solicitacaoDropdown">
+                                <div class="faq-select-search-wrapper">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="solicitacaoSearchInput"
+                                           placeholder="Buscar por ID, consumidor ou tipo..."
+                                           autocomplete="off">
+                                </div>
+                                <ul class="faq-select-options" id="solicitacaoOptionsList">
+                                    <li class="faq-option-loading">
+                                        <i class="fas fa-spinner fa-spin"></i> Carregando...
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
 
+                    <!-- CARD B: Dropdown de Feedbacks da Loja -->
                     <div class="search-card">
-                        <h3><i class="fas fa-clipboard-list"></i> Buscar Feedbacks por Solicitação</h3>
-                        <p>Veja todos os feedbacks de uma solicitação específica.</p>
-                        <form id="form-busca-solicitacao" class="search-form">
-                            <div class="search-input-group">
-                                <input type="number" id="input-solicitacao-id" placeholder="ID da Solicitação" min="1"
-                                    required>
-                                <button type="submit" class="btn btn-primary" id="btn-buscar-solicitacao">
-                                    <i class="fas fa-search"></i> Buscar
-                                </button>
+                        <h3><i class="fas fa-star"></i> Buscar Feedback Específico</h3>
+                        <p>Selecione um feedback recebido pela sua loja nos últimos 180 dias.</p>
+
+                        <!-- Dropdown pesquisável de feedbacks -->
+                        <div class="faq-select-wrapper" id="feedbackSelectWrapper">
+                            <div class="faq-select-trigger" id="feedbackTrigger" tabindex="0">
+                                <span class="faq-select-placeholder" id="feedbackPlaceholder">
+                                    <i class="fas fa-spinner fa-spin" id="feedbackLoadingIcon"></i>
+                                    Carregando feedbacks...
+                                </span>
+                                <i class="fas fa-chevron-down faq-select-arrow"></i>
                             </div>
-                        </form>
+                            <div class="faq-select-dropdown" id="feedbackDropdown">
+                                <div class="faq-select-search-wrapper">
+                                    <i class="fas fa-search"></i>
+                                    <input type="text" id="feedbackSearchInput"
+                                           placeholder="Buscar por consumidor ou comentário..."
+                                           autocomplete="off">
+                                </div>
+                                <ul class="faq-select-options" id="feedbackOptionsList">
+                                    <li class="faq-option-loading">
+                                        <i class="fas fa-spinner fa-spin"></i> Carregando...
+                                    </li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
+
                 </div>
 
                 <!-- Área de Resultados -->

@@ -98,7 +98,7 @@ document.addEventListener('DOMContentLoaded', () => {
         produtoForm.reset();
         editIdInput.value = '';
         document.querySelector('#addProdutoModal .modal-header h2').textContent = 'Adicionar Novo Produto';
-        // Imagem obrigatória (backend exige tanto no POST quanto no PUT)
+        // Imagem obrigatória apenas no cadastro (POST)
         document.getElementById('imagem').required = true;
         const smallImagem = document.querySelector('#addProdutoForm .form-group small');
         if (smallImagem) smallImagem.textContent = 'Selecione a imagem do produto.';
@@ -128,9 +128,12 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!response.ok)            throw new Error(`Erro ao buscar produtos. Status: ${response.status}`);
 
             const dados    = await response.json();
-            const produtos = Array.isArray(dados)
+            let produtos = Array.isArray(dados)
                            ? dados
                            : Array.isArray(dados.content) ? dados.content : [];
+
+            // ✅ Filtra produtos inativos (soft-deleted via PATCH)
+            produtos = produtos.filter(p => (p.status || '').toUpperCase() !== 'INATIVO');
 
             tableBody.innerHTML = '';
 
@@ -201,15 +204,15 @@ document.addEventListener('DOMContentLoaded', () => {
                 showToast('Informe um preço válido e não negativo.', 'error');
                 return;
             }
-            // O backend exige imagem tanto no POST quanto no PUT
-            if (!imagemFile) {
+            // Imagem obrigatória apenas no cadastro (POST)
+            if (!isEdicao && !imagemFile) {
                 showToast('Selecione uma imagem para o produto.', 'error');
                 return;
             }
 
             // Monta o multipart/form-data conforme a documentação:
             // Parte 1: "produto" → application/json
-            // Parte 2: "imagem"  → image/*
+            // Parte 2: "imagem"  → image/* (obrigatória no POST, opcional no PUT)
             const produtoJson = { descricao, unidadeMedida, preco };
 
             const formData = new FormData();
@@ -219,6 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
             );
             if (imagemFile) {
                 formData.append('imagem', imagemFile);
+            } else {
+                // PUT exige a part "imagem" no multipart — envia blob vazio
+                formData.append('imagem', new Blob(), 'empty');
             }
 
             const url    = isEdicao ? `${PRODUTOS_URL}/${idParaEditar}` : PRODUTOS_URL;
@@ -301,10 +307,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 document.getElementById('unidadeMedida').value = produto.unidadeMedida || 'UN';
                 // Limpa o file input (não dá para preencher por segurança do browser)
                 document.getElementById('imagem').value        = '';
-                document.getElementById('imagem').required     = true;
-                // Avisa o usuário que a imagem é obrigatória mesmo na edição
+                // ✅ Imagem NÃO é obrigatória na edição — mantém a existente se não selecionar
+                document.getElementById('imagem').required     = false;
                 const smallImagem = document.querySelector('#addProdutoForm .form-group small');
-                if (smallImagem) smallImagem.textContent = 'Obrigatório: selecione a imagem do produto para salvar.'
+                if (smallImagem) smallImagem.textContent = 'Opcional: selecione apenas se quiser trocar a imagem atual.'
 
                 editIdInput.value = String(produto.idProduto);
                 document.querySelector('#addProdutoModal .modal-header h2').textContent = 'Editar Produto';
