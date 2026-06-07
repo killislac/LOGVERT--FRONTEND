@@ -324,33 +324,8 @@ Campos e modais espelham exatamente a documentação da API /logvert/vendas
                         Itens da Venda <span class="required">*</span>
                     </label>
                     <div id="itensVendaContainer">
-                        <!-- Item 1 (padrão) -->
-                        <div class="item-venda-row" data-index="0">
-                            <div class="item-row-header">
-                                <span class="item-row-label">Item 1</span>
-                                <button type="button" class="btn-remove-item" title="Remover item">&times;</button>
-                            </div>
-                            <div class="item-row-fields">
-                                <div class="item-field">
-                                    <label>ID Produto <span class="required">*</span></label>
-                                    <input type="number" data-field="idProduto" min="1" placeholder="Ex: 101" required>
-                                </div>
-                                <div class="item-field">
-                                    <label>Quantidade <span class="required">*</span></label>
-                                    <input type="number" data-field="quantidade" min="1" step="1" value="1"
-                                        placeholder="Ex: 2" required>
-                                </div>
-                                <div class="item-field">
-                                    <label>Valor Vendido (R$) <span class="required">*</span></label>
-                                    <input type="number" data-field="valorVendido" min="0" step="0.01"
-                                        placeholder="Ex: 89.90" required>
-                                </div>
-                                <div class="item-field">
-                                    <label>Detalhe</label>
-                                    <input type="text" data-field="detalhe" placeholder="Ex: Tamanho G">
-                                </div>
-                            </div>
-                        </div>
+                        {{!-- Os itens são gerados dinamicamente pelo venda.js (criarItemRow + adicionarItemVazio).
+                             O container começa vazio — o JS adiciona o 1º item ao abrir o modal. --}}
                     </div>
                     <button type="button" class="btn-add-item" id="btnAddItem">
                         <i class="fas fa-plus"></i> Adicionar Item

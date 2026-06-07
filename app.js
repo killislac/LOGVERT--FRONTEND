@@ -52,6 +52,7 @@ app.get('/produtos', (req, res) => {
       <script src="/pages/menu.lojista/menuLojista.js"></script>
       <script src="/pages/produtos/produtos.js"></script>
     `
+    // NOTA: apiClient.js NÃO listado aqui — já é carregado pelo layout main.handlebars
   });
 });
 
@@ -65,10 +66,10 @@ app.get('/vendas', (req, res) => {
     `,
     pageScripts: `
       <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-      <script src="/js/api/apiClient.js"></script>
       <script src="/pages/menu.lojista/menuLojista.js"></script>
       <script src="/pages/vendas/venda.js"></script>
     `
+    // NOTA: apiClient.js NÃO listado aqui — já é carregado pelo layout main.handlebars
   });
 });
 
@@ -82,10 +83,10 @@ app.get('/consumidores', (req, res) => {
     `,
     pageScripts: `
       <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
-      <script src="/js/api/apiClient.js"></script>
       <script src="/pages/menu.lojista/menuLojista.js"></script>
       <script src="/pages/consumidores/consumidores.js"></script>
     `
+    // NOTA: apiClient.js NÃO listado aqui — já é carregado pelo layout main.handlebars
   });
 });
 
